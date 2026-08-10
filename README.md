@@ -1,15 +1,26 @@
 # shared-auth.github.io
 
-This repository is intentionally dormant. The shared-auth organization does not
-need a GitHub Pages marketing site, and no Pages workflow or site artifact is
-configured here.
+Astro-based GitHub Pages marketing site for the Shared Auth identity plane. This repository is intentionally **not** Jekyll or Hugo.
 
-Repository maintenance still follows the organization baseline:
+## Development
 
 ```sh
-nix develop ./.nix
-flags2env audit .cli-flags.toml
+npm ci
+npm run dev
+npm run build
+npm test
 ```
 
-No telemetry exporter runs because there is no application runtime; any future
-verification command inherits the standard OpenTelemetry environment contract.
+The site emits static output to `dist/`, including `public/.nojekyll` so GitHub Pages serves the Astro artifact directly.
+
+## Dashboard handoff
+
+The marketing site links to `/dashboard/`. The handoff page never infers authentication state or embeds secrets. Set the GitHub Pages repository variable `PUBLIC_DASHBOARD_URL` to the deployed dashboard URL after `shared-auth/shared-auth-web-server.js` is provisioned.
+
+The value is validated during the Astro build and must:
+
+- use HTTPS;
+- contain no embedded username or password; and
+- point to the separately deployed Shared Auth directory dashboard.
+
+When the variable is absent, the page stays fail-closed and displays a provisioning notice rather than redirecting to an invented endpoint.
