@@ -53,8 +53,8 @@ test("the committed lock pins the certified Astro dependency", () => {
   assert.ok(existsSync(lockfile));
   const lock = JSON.parse(readFileSync(lockfile, "utf8"));
   assert.equal(lock.lockfileVersion, 3);
-  assert.equal(lock.packages[""].dependencies.astro, "5.18.2");
-  assert.equal(lock.packages["node_modules/astro"].version, "5.18.2");
+  assert.equal(lock.packages[""].dependencies.astro, "7.2.1");
+  assert.equal(lock.packages["node_modules/astro"].version, "7.2.1");
 });
 
 test("all workflow dependencies are immutable and checkouts drop credentials", () => {
