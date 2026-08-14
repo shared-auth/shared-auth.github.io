@@ -19,15 +19,15 @@ seed name:
     test ! -e "$target" || { echo "refusing to overwrite $target" >&2; exit 1; }
     umask 077; cp .env.example "$target"; chmod 600 "$target"
 
-# Normal Pages-style build. PUBLIC_DASHBOARD_URL is public metadata and does not require decryption.
+# Normal Pages-style build. The dashboard URL and its allowlist are public metadata and do not require decryption.
 build-public:
-    @npm ci --no-audit --no-fund
+    @npm ci --ignore-scripts --no-audit --no-fund
     @npm run build
     @npm test
 
 # Optional local profile for explicitly reviewed future non-secret variants.
 build-local name="dev":
-    @sops exec-env --input-type dotenv env/enc/{{ name }}.env.enc 'npm ci --no-audit --no-fund && npm run build && npm test'
+    @sops exec-env --input-type dotenv env/enc/{{ name }}.env.enc 'npm ci --ignore-scripts --no-audit --no-fund && npm run build && npm test'
 
 use name:
     @mkdir -p env/dec && chmod 700 env/dec

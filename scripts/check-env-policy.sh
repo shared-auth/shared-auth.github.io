@@ -17,7 +17,8 @@ pem_private='-----BEGIN ''PRIVATE KEY-----'
 openssh_private='-----BEGIN OPENSSH ''PRIVATE KEY-----'
 if git grep -I -q -e "$age_private" -e "$pem_private" -e "$openssh_private" -- .; then fail "private-key material detected"; fi
 variables=$(awk -F= '/^[A-Z][A-Z0-9_]*=/{print $1}' .env.example | sort -u)
-test "$variables" = 'PUBLIC_DASHBOARD_URL' || fail "static-site schema may contain only PUBLIC_DASHBOARD_URL"
+expected_variables=$(printf '%s\n' 'PUBLIC_DASHBOARD_URL' 'PUBLIC_DASHBOARD_URL_ALLOWLIST')
+test "$variables" = "$expected_variables" || fail "static-site schema may contain only the dashboard URL and its public allowlist"
 for forbidden in DATABASE_URL SENDGRID TWILIO SERVICE_ROLE SIGNING_KEY TOKEN SECRET KEY AWS_ CLOUDFLARE_; do ! grep -Eq "^[A-Z0-9_]*${forbidden}[A-Z0-9_]*=" .env.example || fail "credential variable forbidden in static-site schema: $forbidden"; done
 # Pages deployment must remain keyless; do not introduce a SOPS decrypt step.
 if grep -RIEq '(^|[[:space:]])(sops|ores-sops)[[:space:]].*(decrypt|exec-env|use)' .github/workflows; then fail "Pages workflows must not decrypt environment profiles"; fi
