@@ -2,3 +2,6 @@ tmp
 temp
 tmp/worktrees
 temp/worktrees
+node_modules/
+dist/
+.astro/
