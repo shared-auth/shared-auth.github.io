@@ -8,7 +8,9 @@ export const INTAKE_PATHS = Object.freeze({
 export function resolveIntakeEndpoint(kind, raw) {
   const expectedPath = INTAKE_PATHS[kind];
   if (!expectedPath) throw new Error("unknown intake kind");
-  if (typeof raw !== "string" || !raw.trim()) return "";
+  if (typeof raw !== "string" || !raw.trim()) {
+    throw new Error(`missing ${kind} intake endpoint`);
+  }
 
   const url = new URL(raw.trim());
   if (
@@ -24,12 +26,14 @@ export function resolveIntakeEndpoint(kind, raw) {
   return url.toString();
 }
 
-export function publicIntakeConfig(env = {}) {
-  return Object.freeze({
-    quote: resolveIntakeEndpoint("quote", env.PUBLIC_QUOTE_INTAKE_URL),
-    preInterest: resolveIntakeEndpoint(
-      "pre-interest",
-      env.PUBLIC_PRE_INTEREST_INTAKE_URL,
-    ),
-  });
+const PUBLIC_INTAKE = Object.freeze({
+  quote: resolveIntakeEndpoint("quote", `${API_ORIGIN}${INTAKE_PATHS.quote}`),
+  preInterest: resolveIntakeEndpoint(
+    "pre-interest",
+    `${API_ORIGIN}${INTAKE_PATHS["pre-interest"]}`,
+  ),
+});
+
+export function publicIntakeConfig() {
+  return PUBLIC_INTAKE;
 }
