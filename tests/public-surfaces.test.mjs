@@ -85,6 +85,7 @@ test("browser intake transport omits ambient authority and does not inspect erro
     "utf8",
   );
   for (const boundary of [
+    'action=""',
     'credentials: "omit"',
     'redirect: "error"',
     'referrerPolicy: "no-referrer"',
@@ -94,6 +95,7 @@ test("browser intake transport omits ambient authority and does not inspect erro
   ]) {
     assert.ok(component.includes(boundary), `missing ${boundary}`);
   }
+  assert.ok(!component.includes("action={endpoint"));
   assert.ok(!component.includes("response.text("));
   assert.ok(!component.includes("response.json("));
   assert.ok(!component.includes("localStorage"));
