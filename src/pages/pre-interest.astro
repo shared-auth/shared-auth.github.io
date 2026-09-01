@@ -1,0 +1,46 @@
+---
+import PublicIntakeShell from "../components/PublicIntakeShell.astro";
+---
+<PublicIntakeShell
+  title="Register pre-interest"
+  eyebrow="Early access and integration planning"
+  description="Register interest in the Shared Auth user, organization, or partner program before the production intake opens."
+>
+  <form id="pre-interest-form" novalidate>
+    <div class="grid">
+      <label>Name <input name="name" autocomplete="name" maxlength="120" /></label>
+      <label>Email <input name="email" type="email" autocomplete="email" maxlength="254" required /></label>
+      <label>Interest type
+        <select name="account_kind" required>
+          <option value="">Select one</option>
+          <option value="user">Individual / developer</option>
+          <option value="organization">Organization</option>
+          <option value="partner">Integration partner</option>
+        </select>
+      </label>
+      <label>Organization name <input name="organization_name" autocomplete="organization" maxlength="160" /></label>
+      <label>Expected launch
+        <select name="expected_launch" required>
+          <option value="now">As soon as available</option>
+          <option value="quarter">Within three months</option>
+          <option value="six-months">Within six months</option>
+          <option value="exploring">Exploring / no date</option>
+        </select>
+      </label>
+      <label class="full">Use case
+        <textarea name="use_case" maxlength="2000" required placeholder="What are you authenticating, and is this for individual users, organizations, or both?"></textarea>
+      </label>
+    </div>
+    <label class="honeypot" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+    <label class="consent">
+      <input type="checkbox" name="consent_to_updates" value="yes" required />
+      <span>I consent to receiving Shared Auth launch and integration updates.</span>
+    </label>
+    <button type="submit">Register interest</button>
+    <p data-form-status role="status" aria-live="polite"></p>
+  </form>
+</PublicIntakeShell>
+<script>
+  import { bindIntakeForm } from "../lib/intake-client.mjs";
+  bindIntakeForm({ formId: "pre-interest-form", kind: "preInterest" });
+</script>

@@ -1,0 +1,67 @@
+---
+import PublicIntakeShell from "../components/PublicIntakeShell.astro";
+---
+<PublicIntakeShell
+  title="Request a Shared Auth quote"
+  eyebrow="Capacity, assurance, and support"
+  description="Tell us the expected authentication volume and assurance requirements. This is a request for review, not a binding price or purchase commitment."
+>
+  <form id="quote-form" novalidate>
+    <div class="grid">
+      <label>Name <input name="name" autocomplete="name" maxlength="120" /></label>
+      <label>Email <input name="email" type="email" autocomplete="email" maxlength="254" required /></label>
+      <label>Account type
+        <select name="account_kind" required>
+          <option value="">Select one</option>
+          <option value="user">Individual / developer</option>
+          <option value="organization">Organization</option>
+        </select>
+      </label>
+      <label>Organization name <input name="organization_name" autocomplete="organization" maxlength="160" /></label>
+      <label>Monthly active users
+        <input name="monthly_active_users" type="number" inputmode="numeric" min="1" max="1000000000" value="1000" required />
+      </label>
+      <label>Monthly authentication events
+        <input name="monthly_auth_events" type="number" inputmode="numeric" min="1" max="1000000000" value="10000" required />
+      </label>
+      <label>MFA requirement
+        <select name="mfa" required>
+          <option value="optional">Optional</option>
+          <option value="required">Required for every account</option>
+          <option value="step-up">Risk-based / step-up</option>
+        </select>
+      </label>
+      <label>Support tier
+        <select name="support_tier" required>
+          <option value="standard">Standard</option>
+          <option value="priority">Priority</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </label>
+    </div>
+    <fieldset>
+      <legend>Identity providers</legend>
+      <div class="check-grid">
+        <label><input type="checkbox" name="sso_providers" value="google" /> Google</label>
+        <label><input type="checkbox" name="sso_providers" value="github" /> GitHub</label>
+        <label><input type="checkbox" name="sso_providers" value="microsoft" /> Microsoft</label>
+        <label><input type="checkbox" name="sso_providers" value="saml" /> SAML</label>
+        <label><input type="checkbox" name="sso_providers" value="oidc" /> Custom OIDC</label>
+      </div>
+    </fieldset>
+    <label>Requirements or constraints
+      <textarea name="notes" maxlength="2000" placeholder="Regions, compliance, migration timing, support expectations…"></textarea>
+    </label>
+    <label class="honeypot" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
+    <label class="consent">
+      <input type="checkbox" name="consent_to_contact" value="yes" required />
+      <span>I consent to being contacted about this quote request.</span>
+    </label>
+    <button type="submit">Submit quote request</button>
+    <p data-form-status role="status" aria-live="polite"></p>
+  </form>
+</PublicIntakeShell>
+<script>
+  import { bindIntakeForm } from "../lib/intake-client.mjs";
+  bindIntakeForm({ formId: "quote-form", kind: "quote" });
+</script>

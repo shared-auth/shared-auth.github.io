@@ -1,0 +1,30 @@
+---
+import PublicIntakeShell from "../components/PublicIntakeShell.astro";
+---
+<PublicIntakeShell
+  title="Choose your Shared Auth surface"
+  eyebrow="One identity plane, explicit contexts"
+  description="Continue to the exact user or organization host. Authentication and product authorization remain separate boundaries."
+>
+  <div class="surface-grid">
+    <a href="https://user.ores-shared-auth.com/">
+      <strong>Individual user</strong>
+      <span>Sign in, manage factors, sessions, and personal applications.</span>
+    </a>
+    <a href="https://org.ores-shared-auth.com/">
+      <strong>Organization</strong>
+      <span>Sign in to an organization context, invitations, policies, and SSO.</span>
+    </a>
+    <a href="/quote/">
+      <strong>Request a quote</strong>
+      <span>Describe capacity, identity providers, assurance, and support needs.</span>
+    </a>
+    <a href="/pre-interest/">
+      <strong>Register pre-interest</strong>
+      <span>Join the early integration and launch-notification list.</span>
+    </a>
+  </div>
+</PublicIntakeShell>
+<style>
+.surface-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.surface-grid a{display:grid;gap:.45rem;padding:1.2rem;border:1px solid #d9e0ea;border-radius:.9rem;color:#0f172a;text-decoration:none;background:#f8fafc}.surface-grid a:hover,.surface-grid a:focus-visible{border-color:#1d4ed8;box-shadow:0 12px 30px #1d4ed812}.surface-grid strong{font-size:1.05rem}.surface-grid span{color:#536179;font-size:.9rem}@media(max-width:650px){.surface-grid{grid-template-columns:1fr}}
+</style>
