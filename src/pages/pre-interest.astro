@@ -1,19 +1,20 @@
 ---
 import PublicIntakeShell from "../components/PublicIntakeShell.astro";
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 <PublicIntakeShell
   title="Register pre-interest"
   eyebrow="Early access and integration planning"
-  description="Register interest in the Shared Auth user, organization, or partner program before the production intake opens."
+  description="Register interest before production intake opens. Registration does not create an account, organization, role, entitlement, quote, invoice, or charge."
 >
   <form id="pre-interest-form" novalidate>
     <div class="grid">
       <label>Name <input name="name" autocomplete="name" maxlength="120" /></label>
       <label>Email <input name="email" type="email" autocomplete="email" maxlength="254" required /></label>
       <label>Interest type
-        <select name="account_kind" required>
+        <select name="party_type" required>
           <option value="">Select one</option>
-          <option value="user">Individual / developer</option>
+          <option value="individual">Individual / developer</option>
           <option value="organization">Organization</option>
           <option value="partner">Integration partner</option>
         </select>
@@ -23,7 +24,7 @@ import PublicIntakeShell from "../components/PublicIntakeShell.astro";
         <select name="expected_launch" required>
           <option value="now">As soon as available</option>
           <option value="quarter">Within three months</option>
-          <option value="six-months">Within six months</option>
+          <option value="six_months">Within six months</option>
           <option value="exploring">Exploring / no date</option>
         </select>
       </label>
@@ -33,13 +34,23 @@ import PublicIntakeShell from "../components/PublicIntakeShell.astro";
     </div>
     <label class="honeypot" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
     <label class="consent">
-      <input type="checkbox" name="consent_to_updates" value="yes" required />
-      <span>I consent to receiving Shared Auth launch and integration updates.</span>
+      <input type="checkbox" name="contact_consent" value="yes" required />
+      <span>I consent to Shared Auth storing and reviewing this registration and contacting me about it.</span>
     </label>
-    <button type="submit">Register interest</button>
+    <label class="consent">
+      <input type="checkbox" name="marketing_consent" value="yes" />
+      <span>I separately consent to receiving Shared Auth launch and integration updates. This is optional.</span>
+    </label>
+    {turnstileSiteKey ? (
+      <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-action="shared_auth_pre_interest"></div>
+    ) : (
+      <p class="configuration-error" role="alert">Submissions are disabled until the abuse-prevention site key is configured.</p>
+    )}
+    <button type="submit" disabled={!turnstileSiteKey}>Register interest</button>
     <p data-form-status role="status" aria-live="polite"></p>
   </form>
 </PublicIntakeShell>
+{turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 <script>
   import { bindIntakeForm } from "../lib/intake-client.mjs";
   bindIntakeForm({ formId: "pre-interest-form", kind: "preInterest" });

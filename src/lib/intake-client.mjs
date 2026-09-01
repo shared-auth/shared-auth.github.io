@@ -1,32 +1,44 @@
 const API_ORIGIN = "https://api.ores-shared-auth.com";
+const PUBLIC_INTAKE_SCHEMA = "ores.shared-auth.public-intake.v1";
+const CONTACT_CONSENT_REVISION = "2026-09-01";
+const MARKETING_CONSENT_REVISION = "2026-09-01";
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const CANONICAL_SURFACES = new Set(["app", "user", "org", "marketing"]);
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const MAX_NOTES_LENGTH = 2000;
 const MAX_USE_CASE_LENGTH = 2000;
 const MAX_ORGANIZATION_LENGTH = 160;
 const MAX_NAME_LENGTH = 120;
 const MAX_USAGE = 1_000_000_000;
+const MAX_TURNSTILE_TOKEN_LENGTH = 4096;
 
 export const INTAKE_ENDPOINTS = Object.freeze({
   quote: `${API_ORIGIN}/v1/quote-requests`,
   preInterest: `${API_ORIGIN}/v1/pre-interest`,
 });
 
+export const INTAKE_SURFACES = Object.freeze({
+  quote: "org.ores-shared-auth.com",
+  preInterest: "user.ores-shared-auth.com",
+});
+
 export function buildQuoteSubmission(values, context = {}) {
   const email = requiredEmail(values.email);
-  const accountKind = oneOf(values.accountKind, ["user", "organization"], "account type");
+  const partyType = oneOf(values.partyType, ["individual", "organization"], "party type");
   const organizationName = optionalText(values.organizationName, MAX_ORGANIZATION_LENGTH);
-  if (accountKind === "organization" && !organizationName) {
+  if (partyType === "organization" && !organizationName) {
     throw new IntakeValidationError("Organization name is required for organization quotes.");
   }
 
   return {
-    contract: "ores.shared-auth.quote-request.v1",
+    schema: PUBLIC_INTAKE_SCHEMA,
+    intent: "quote",
+    request_id: requiredUuid(context.requestId),
+    source_host: requiredSourceHost(context.sourceHost, "quote"),
     contact: {
       name: optionalText(values.name, MAX_NAME_LENGTH),
       email,
     },
-    account_kind: accountKind,
+    party_type: partyType,
     organization_name: organizationName,
     usage: {
       monthly_active_users: boundedInteger(values.monthlyActiveUsers, 1, MAX_USAGE, "monthly active users"),
@@ -38,39 +50,73 @@ export function buildQuoteSubmission(values, context = {}) {
       support_tier: oneOf(values.supportTier, ["standard", "priority", "enterprise"], "support tier"),
     },
     notes: optionalText(values.notes, MAX_NOTES_LENGTH),
-    consent_to_contact: requiredBoolean(values.consentToContact, "Consent to contact is required."),
-    source: intakeSource(context),
+    contact_consent: requiredBoolean(values.contactConsent, "Consent to contact is required."),
+    contact_consent_revision: CONTACT_CONSENT_REVISION,
+    consented_at: requiredTimestamp(context.consentedAt),
+    marketing_consent: false,
+    marketing_consent_revision: null,
+    turnstile_token: requiredText(
+      context.turnstileToken,
+      MAX_TURNSTILE_TOKEN_LENGTH,
+      "Complete the abuse-prevention challenge.",
+    ),
   };
 }
 
 export function buildPreInterestSubmission(values, context = {}) {
   const email = requiredEmail(values.email);
-  const accountKind = oneOf(values.accountKind, ["user", "organization", "partner"], "interest type");
+  const partyType = oneOf(
+    values.partyType,
+    ["individual", "organization", "partner"],
+    "interest type",
+  );
   const organizationName = optionalText(values.organizationName, MAX_ORGANIZATION_LENGTH);
-  if (accountKind === "organization" && !organizationName) {
-    throw new IntakeValidationError("Organization name is required for organization registration.");
+  if ((partyType === "organization" || partyType === "partner") && !organizationName) {
+    throw new IntakeValidationError("Organization name is required for organization or partner registration.");
   }
+  const marketingConsent = values.marketingConsent === true;
 
   return {
-    contract: "ores.shared-auth.pre-interest.v1",
+    schema: PUBLIC_INTAKE_SCHEMA,
+    intent: "pre_interest",
+    request_id: requiredUuid(context.requestId),
+    source_host: requiredSourceHost(context.sourceHost, "preInterest"),
     contact: {
       name: optionalText(values.name, MAX_NAME_LENGTH),
       email,
     },
-    account_kind: accountKind,
+    party_type: partyType,
     organization_name: organizationName,
     use_case: requiredText(values.useCase, MAX_USE_CASE_LENGTH, "Use case is required."),
     expected_launch: oneOf(
       values.expectedLaunch,
-      ["now", "quarter", "six-months", "exploring"],
+      ["now", "quarter", "six_months", "exploring"],
       "expected launch",
     ),
-    consent_to_updates: requiredBoolean(values.consentToUpdates, "Consent to updates is required."),
-    source: intakeSource(context),
+    contact_consent: requiredBoolean(
+      values.contactConsent,
+      "Consent to store and review this registration is required.",
+    ),
+    contact_consent_revision: CONTACT_CONSENT_REVISION,
+    consented_at: requiredTimestamp(context.consentedAt),
+    marketing_consent: marketingConsent,
+    marketing_consent_revision: marketingConsent ? MARKETING_CONSENT_REVISION : null,
+    turnstile_token: requiredText(
+      context.turnstileToken,
+      MAX_TURNSTILE_TOKEN_LENGTH,
+      "Complete the abuse-prevention challenge.",
+    ),
   };
 }
 
-export async function submitIntake({ kind, values, context = {}, fetchImpl = fetch, idempotencyKey }) {
+export async function submitIntake({
+  kind,
+  values,
+  context = {},
+  fetchImpl = fetch,
+  idempotencyKey,
+  clock = () => new Date(),
+}) {
   const endpoint = kind === "quote"
     ? INTAKE_ENDPOINTS.quote
     : kind === "preInterest"
@@ -84,10 +130,16 @@ export async function submitIntake({ kind, values, context = {}, fetchImpl = fet
     return { accepted: true, ignored: true };
   }
 
+  const key = requiredUuid(idempotencyKey);
+  const payloadContext = {
+    requestId: key,
+    sourceHost: context.sourceHost,
+    turnstileToken: context.turnstileToken,
+    consentedAt: clock().toISOString(),
+  };
   const payload = kind === "quote"
-    ? buildQuoteSubmission(values, context)
-    : buildPreInterestSubmission(values, context);
-  const key = normalizeIdempotencyKey(idempotencyKey);
+    ? buildQuoteSubmission(values, payloadContext)
+    : buildPreInterestSubmission(values, payloadContext);
 
   let response;
   try {
@@ -117,17 +169,16 @@ export async function submitIntake({ kind, values, context = {}, fetchImpl = fet
   }
 
   const result = await safeJson(response);
-  return {
-    accepted: true,
-    requestId: safeRequestId(result?.request_id),
-  };
+  if (!isAcceptedEnvelope(result)) {
+    throw new IntakeUnavailableError();
+  }
+  return { accepted: true };
 }
 
 export function bindIntakeForm({ formId, kind }) {
   const form = document.getElementById(formId);
-  if (!(form instanceof HTMLFormElement)) {
-    return;
-  }
+  if (!(form instanceof HTMLFormElement)) return;
+
   const status = form.querySelector("[data-form-status]");
   const submit = form.querySelector('button[type="submit"]');
   let inFlight = false;
@@ -144,22 +195,27 @@ export function bindIntakeForm({ formId, kind }) {
     setStatus(status, "Submitting securely…", "pending");
 
     try {
-      const values = formValues(form, kind);
+      const data = new FormData(form);
+      const values = formValues(data, kind);
       const result = await submitIntake({
         kind,
         values,
-        context: { surface: surfaceFromLocation(globalThis.location) },
+        context: {
+          sourceHost: globalThis.location.hostname.toLowerCase(),
+          turnstileToken: data.get("cf-turnstile-response"),
+        },
         idempotencyKey,
       });
       if (!result.ignored) {
         form.reset();
+        globalThis.turnstile?.reset?.();
         idempotencyKey = crypto.randomUUID();
       }
       setStatus(
         status,
         kind === "quote"
-          ? "Quote request received. We will contact you after review."
-          : "Registration received. We will send product updates to the address provided.",
+          ? "Quote request received for review. No account, invoice, charge, or binding price was created."
+          : "Pre-interest registration received. No account, organization, role, entitlement, or quote was created.",
         "success",
       );
     } catch (error) {
@@ -188,14 +244,14 @@ export class IntakeUnavailableError extends Error {
   }
 }
 
-function formValues(form, kind) {
-  const data = new FormData(form);
+function formValues(data, kind) {
   const common = {
     name: data.get("name"),
     email: data.get("email"),
-    accountKind: data.get("account_kind"),
+    partyType: data.get("party_type"),
     organizationName: data.get("organization_name"),
     website: data.get("website"),
+    contactConsent: data.get("contact_consent") === "yes",
   };
   if (kind === "quote") {
     return {
@@ -206,35 +262,22 @@ function formValues(form, kind) {
       mfa: data.get("mfa"),
       supportTier: data.get("support_tier"),
       notes: data.get("notes"),
-      consentToContact: data.get("consent_to_contact") === "yes",
     };
   }
   return {
     ...common,
     useCase: data.get("use_case"),
     expectedLaunch: data.get("expected_launch"),
-    consentToUpdates: data.get("consent_to_updates") === "yes",
+    marketingConsent: data.get("marketing_consent") === "yes",
   };
 }
 
-function intakeSource(context) {
-  return {
-    surface: canonicalSurface(context.surface),
-    page: optionalText(context.page, 120),
-  };
-}
-
-function canonicalSurface(value) {
-  const normalized = String(value ?? "marketing").trim().toLowerCase();
-  return CANONICAL_SURFACES.has(normalized) ? normalized : "marketing";
-}
-
-function surfaceFromLocation(location) {
-  const host = String(location?.hostname ?? "").toLowerCase();
-  for (const surface of ["app", "user", "org"]) {
-    if (host === `${surface}.ores-shared-auth.com`) return surface;
+function requiredSourceHost(value, kind) {
+  const host = String(value ?? "").trim().toLowerCase();
+  if (host !== INTAKE_SURFACES[kind]) {
+    throw new IntakeValidationError(`Use the canonical ${kind === "quote" ? "organization quote" : "user pre-interest"} host.`);
   }
-  return "marketing";
+  return host;
 }
 
 function requiredEmail(value) {
@@ -271,9 +314,7 @@ function boundedInteger(value, minimum, maximum, label) {
 
 function stringList(value, maximumItems, maximumLength) {
   const values = Array.isArray(value) ? value : value ? [value] : [];
-  const normalized = values
-    .map((item) => optionalText(item, maximumLength))
-    .filter(Boolean);
+  const normalized = values.map((item) => optionalText(item, maximumLength)).filter(Boolean);
   if (normalized.length > maximumItems || new Set(normalized).size !== normalized.length) {
     throw new IntakeValidationError("The selected provider list is invalid.");
   }
@@ -293,17 +334,30 @@ function requiredBoolean(value, message) {
   return true;
 }
 
-function normalizeIdempotencyKey(value) {
+function requiredUuid(value) {
   const key = String(value ?? "").trim().toLowerCase();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(key)) {
+  if (!UUID_V4_PATTERN.test(key)) {
     throw new IntakeValidationError("The submission identifier is invalid.");
   }
   return key;
 }
 
-function safeRequestId(value) {
-  const requestId = String(value ?? "").trim();
-  return /^[a-zA-Z0-9_-]{8,80}$/.test(requestId) ? requestId : null;
+function requiredTimestamp(value) {
+  const text = String(value ?? "").trim();
+  const timestamp = Date.parse(text);
+  if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString() !== text) {
+    throw new IntakeValidationError("The consent timestamp is invalid.");
+  }
+  return text;
+}
+
+function isAcceptedEnvelope(value) {
+  return value !== null
+    && typeof value === "object"
+    && !Array.isArray(value)
+    && Object.keys(value).length === 2
+    && value.schema === PUBLIC_INTAKE_SCHEMA
+    && value.status === "accepted";
 }
 
 async function safeJson(response) {

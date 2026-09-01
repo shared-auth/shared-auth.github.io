@@ -1,19 +1,20 @@
 ---
 import PublicIntakeShell from "../components/PublicIntakeShell.astro";
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
 ---
 <PublicIntakeShell
   title="Request a Shared Auth quote"
   eyebrow="Capacity, assurance, and support"
-  description="Tell us the expected authentication volume and assurance requirements. This is a request for review, not a binding price or purchase commitment."
+  description="Tell us the expected authentication volume and assurance requirements. This is a non-binding request for review; it creates no account, invoice, charge, or purchase commitment."
 >
   <form id="quote-form" novalidate>
     <div class="grid">
       <label>Name <input name="name" autocomplete="name" maxlength="120" /></label>
       <label>Email <input name="email" type="email" autocomplete="email" maxlength="254" required /></label>
-      <label>Account type
-        <select name="account_kind" required>
+      <label>Party type
+        <select name="party_type" required>
           <option value="">Select one</option>
-          <option value="user">Individual / developer</option>
+          <option value="individual">Individual / developer</option>
           <option value="organization">Organization</option>
         </select>
       </label>
@@ -54,13 +55,19 @@ import PublicIntakeShell from "../components/PublicIntakeShell.astro";
     </label>
     <label class="honeypot" aria-hidden="true">Website <input name="website" tabindex="-1" autocomplete="off" /></label>
     <label class="consent">
-      <input type="checkbox" name="consent_to_contact" value="yes" required />
-      <span>I consent to being contacted about this quote request.</span>
+      <input type="checkbox" name="contact_consent" value="yes" required />
+      <span>I consent to Shared Auth storing and reviewing this request and contacting me about it.</span>
     </label>
-    <button type="submit">Submit quote request</button>
+    {turnstileSiteKey ? (
+      <div class="cf-turnstile" data-sitekey={turnstileSiteKey} data-action="shared_auth_quote"></div>
+    ) : (
+      <p class="configuration-error" role="alert">Submissions are disabled until the abuse-prevention site key is configured.</p>
+    )}
+    <button type="submit" disabled={!turnstileSiteKey}>Submit quote request</button>
     <p data-form-status role="status" aria-live="polite"></p>
   </form>
 </PublicIntakeShell>
+{turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>}
 <script>
   import { bindIntakeForm } from "../lib/intake-client.mjs";
   bindIntakeForm({ formId: "quote-form", kind: "quote" });
