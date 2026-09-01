@@ -1,0 +1,679 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  summary: string;
+  host: string;
+  status?: string;
+  robots?: string;
+}
+
+const {
+  eyebrow,
+  title,
+  summary,
+  host,
+  status = "First-party Shared Auth surface",
+  robots = "index,follow",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description" content={summary} />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="robots" content={robots} />
+    <meta name="theme-color" content="#07111f" />
+    <title>{title} · Shared Auth</title>
+  </head>
+  <body>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header class="site-header">
+      <a class="brand" href="https://ores-shared-auth.com" aria-label="Shared Auth home">
+        <span class="brand-mark">A</span>
+        <span>Shared Auth</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="https://app.ores-shared-auth.com">Applications</a>
+        <a href="https://quote.ores-shared-auth.com">Quote</a>
+        <a href="https://pre-interest.ores-shared-auth.com">Pre-interest</a>
+        <a href="https://github.com/shared-auth" rel="noreferrer noopener">GitHub ↗</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">{eyebrow}</p>
+          <h1>{title}</h1>
+          <p class="summary">{summary}</p>
+          <div class="host-card" aria-label="Public hostname">
+            <span class="pulse" aria-hidden="true"></span>
+            <div>
+              <small>{status}</small>
+              <strong>{host}</strong>
+            </div>
+          </div>
+        </div>
+        <div class="boundary" aria-label="Shared Auth trust boundary diagram">
+          <div class="boundary-top">
+            <span>PUBLIC HOST</span>
+            <b>exact match</b>
+          </div>
+          <div class="boundary-line"></div>
+          <div class="boundary-node edge">
+            <small>EDGE</small>
+            <strong>Cloudflare Worker</strong>
+            <span>host → service</span>
+          </div>
+          <div class="boundary-arrow" aria-hidden="true">↓</div>
+          <div class="boundary-node authority">
+            <small>AUTHORITY</small>
+            <strong>Shared Auth</strong>
+            <span>identity ≠ authorization</span>
+          </div>
+        </div>
+      </section>
+
+      <slot />
+    </main>
+
+    <footer>
+      <span>© 2026 Shared Auth</span>
+      <span>Credentials stay out of URLs, logs, and static pages.</span>
+      <a href="https://auth.ores-shared-auth.com/edge/healthz" rel="noreferrer">Edge health</a>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: dark;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    background: #07111f;
+    color: #e8f1ff;
+    --ink: #e8f1ff;
+    --muted: #9fb0c8;
+    --line: rgba(151, 178, 215, 0.2);
+    --panel: rgba(10, 26, 45, 0.78);
+    --panel-solid: #0d2037;
+    --blue: #63a7ff;
+    --cyan: #58e8d0;
+    --amber: #ffc875;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-width: 320px;
+    background: #07111f;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    overflow-x: hidden;
+    background:
+      radial-gradient(circle at 82% 0%, rgba(40, 126, 212, 0.2), transparent 34rem),
+      linear-gradient(155deg, #07111f 0%, #081726 50%, #07111f 100%);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .ambient {
+    position: fixed;
+    z-index: -1;
+    width: 30rem;
+    height: 30rem;
+    border-radius: 999px;
+    filter: blur(100px);
+    opacity: 0.14;
+    pointer-events: none;
+  }
+
+  .ambient-one {
+    top: -16rem;
+    right: -8rem;
+    background: var(--blue);
+  }
+
+  .ambient-two {
+    bottom: -18rem;
+    left: -10rem;
+    background: var(--cyan);
+  }
+
+  .site-header,
+  main,
+  footer {
+    width: min(1160px, calc(100% - 2rem));
+    margin-inline: auto;
+  }
+
+  .site-header {
+    min-height: 5.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    text-decoration: none;
+    font-weight: 760;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-mark {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(88, 232, 208, 0.52);
+    border-radius: 0.55rem;
+    background: rgba(88, 232, 208, 0.1);
+    color: var(--cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  nav a {
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-decoration: none;
+  }
+
+  nav a:hover,
+  nav a:focus-visible {
+    color: var(--ink);
+  }
+
+  main {
+    padding: 5rem 0 6rem;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(18rem, 0.8fr);
+    gap: clamp(2rem, 6vw, 6rem);
+    align-items: center;
+    min-height: 30rem;
+  }
+
+  .eyebrow {
+    margin: 0 0 1rem;
+    color: var(--cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    text-wrap: pretty;
+  }
+
+  h1 {
+    max-width: 13ch;
+    margin: 0;
+    font-size: clamp(3rem, 7vw, 6.6rem);
+    line-height: 0.94;
+    letter-spacing: -0.07em;
+  }
+
+  .summary {
+    max-width: 42rem;
+    margin: 1.7rem 0 0;
+    color: var(--muted);
+    font-size: clamp(1rem, 2vw, 1.18rem);
+    line-height: 1.75;
+  }
+
+  .host-card {
+    width: fit-content;
+    max-width: 100%;
+    margin-top: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+    background: rgba(5, 15, 27, 0.58);
+  }
+
+  .host-card div {
+    min-width: 0;
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .host-card small {
+    color: var(--muted);
+    font-size: 0.72rem;
+  }
+
+  .host-card strong {
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.87rem;
+  }
+
+  .pulse {
+    width: 0.58rem;
+    height: 0.58rem;
+    flex: 0 0 auto;
+    border-radius: 99px;
+    background: var(--cyan);
+    box-shadow: 0 0 0 0.35rem rgba(88, 232, 208, 0.11);
+  }
+
+  .boundary {
+    position: relative;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 1.2rem;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      rgba(8, 21, 37, 0.82);
+    background-size: 24px 24px;
+    box-shadow: 0 2rem 6rem rgba(0, 0, 0, 0.28);
+  }
+
+  .boundary-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.25rem 0.35rem 1rem;
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
+
+  .boundary-top b {
+    color: var(--cyan);
+    font-weight: 600;
+  }
+
+  .boundary-line {
+    height: 1px;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, transparent, var(--line), transparent);
+  }
+
+  .boundary-node {
+    min-height: 7.2rem;
+    display: grid;
+    align-content: center;
+    gap: 0.45rem;
+    padding: 1.3rem;
+    border-radius: 0.9rem;
+  }
+
+  .boundary-node small {
+    color: var(--muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+  }
+
+  .boundary-node strong {
+    font-size: 1.05rem;
+  }
+
+  .boundary-node span {
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+
+  .edge {
+    border: 1px solid rgba(99, 167, 255, 0.36);
+    background: rgba(99, 167, 255, 0.08);
+  }
+
+  .authority {
+    border: 1px solid rgba(88, 232, 208, 0.38);
+    background: rgba(88, 232, 208, 0.08);
+  }
+
+  .boundary-arrow {
+    padding: 0.55rem;
+    color: var(--amber);
+    text-align: center;
+  }
+
+  .surface {
+    margin-top: 5rem;
+    padding-top: 4rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .section-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-heading h2 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -0.05em;
+  }
+
+  .section-heading p {
+    max-width: 40rem;
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.75;
+  }
+
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .card,
+  .form-panel,
+  .notice {
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+    background: var(--panel);
+    backdrop-filter: blur(18px);
+  }
+
+  .card {
+    min-height: 14rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1.35rem;
+    text-decoration: none;
+    transition: transform 150ms ease, border-color 150ms ease;
+  }
+
+  .card:hover,
+  .card:focus-visible {
+    transform: translateY(-3px);
+    border-color: rgba(88, 232, 208, 0.55);
+  }
+
+  .card small {
+    color: var(--cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
+
+  .card h3 {
+    margin: 1.1rem 0 0.7rem;
+    font-size: 1.35rem;
+  }
+
+  .card p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .card b {
+    margin-top: auto;
+    padding-top: 1.5rem;
+    color: var(--ink);
+    font-size: 0.88rem;
+  }
+
+  .action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .button,
+  button {
+    min-height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.72rem 1rem;
+    border: 1px solid rgba(88, 232, 208, 0.48);
+    border-radius: 0.72rem;
+    background: rgba(88, 232, 208, 0.12);
+    color: var(--ink);
+    font: inherit;
+    font-weight: 720;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .button.secondary {
+    border-color: var(--line);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--muted);
+  }
+
+  .button:hover,
+  .button:focus-visible,
+  button:hover,
+  button:focus-visible {
+    border-color: var(--cyan);
+    outline: none;
+  }
+
+  .form-layout {
+    display: grid;
+    grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1.3fr);
+    gap: 1.25rem;
+  }
+
+  .notice {
+    padding: 1.4rem;
+  }
+
+  .notice h2,
+  .form-panel h2 {
+    margin: 0 0 0.8rem;
+    font-size: 1.45rem;
+  }
+
+  .notice p,
+  .notice li,
+  .form-panel > p {
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .notice ul {
+    margin: 1.2rem 0 0;
+    padding-left: 1.1rem;
+  }
+
+  .form-panel {
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+
+  form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  label {
+    display: grid;
+    gap: 0.45rem;
+    color: var(--muted);
+    font-size: 0.82rem;
+    font-weight: 650;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 2.8rem;
+    padding: 0.75rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 0.65rem;
+    outline: none;
+    background: rgba(2, 10, 19, 0.66);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  textarea {
+    min-height: 8rem;
+    resize: vertical;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 0.2rem rgba(88, 232, 208, 0.1);
+  }
+
+  .consent {
+    grid-template-columns: auto 1fr;
+    align-items: start;
+    gap: 0.7rem;
+    line-height: 1.5;
+  }
+
+  .consent input {
+    width: 1rem;
+    min-height: 1rem;
+    margin-top: 0.2rem;
+  }
+
+  .form-status {
+    min-height: 1.5rem;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+
+  .form-status[data-state="success"] {
+    color: var(--cyan);
+  }
+
+  .form-status[data-state="error"] {
+    color: #ffacac;
+  }
+
+  button:disabled,
+  form[aria-disabled="true"] button {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .honeypot {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  footer {
+    min-height: 5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 0.78rem;
+  }
+
+  footer a {
+    text-decoration: none;
+  }
+
+  @media (max-width: 850px) {
+    .hero,
+    .section-heading,
+    .form-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .hero {
+      min-height: auto;
+    }
+
+    .card-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 620px) {
+    .site-header {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 1.2rem 0;
+    }
+
+    nav {
+      gap: 0.75rem 1rem;
+    }
+
+    main {
+      padding-top: 3rem;
+    }
+
+    h1 {
+      font-size: clamp(2.7rem, 16vw, 4.2rem);
+    }
+
+    .card-grid,
+    .field-grid {
+      grid-template-columns: 1fr;
+    }
+
+    footer {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 1.3rem 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+</style>
