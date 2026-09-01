@@ -1,0 +1,103 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+import SafeIntakeForm from "../components/SafeIntakeForm.astro";
+import { publicIntakeConfig } from "../lib/public-intake.mjs";
+
+const { preInterest: endpoint } = publicIntakeConfig(import.meta.env);
+---
+
+<PublicLaunchShell
+  eyebrow="Pre-interest registration"
+  title="Register interest without creating an account prematurely."
+  summary="Tell Shared Auth which launch surface matters to you. Registration is informational only: it does not create a user, organization, subscription, role, session, or authorization grant."
+  host="pre-interest.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Early signal, no implicit entitlement.</h2>
+      <p>
+        A pre-interest record lets the team plan capacity and integration
+        priorities. Access remains subject to a separate verified invitation,
+        authentication ceremony, and product-local authorization decision.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>What registration does</h2>
+        <ul>
+          <li>Records a bounded contact and use-case signal.</li>
+          <li>Does not reserve a hostname, organization, role, or price.</li>
+          <li>Does not enroll a factor or create a Shared Auth session.</li>
+          <li>Can be followed by a separate quote or technical discovery request.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Pre-interest form</h2>
+        <p>
+          Submission remains disabled until
+          <code>PUBLIC_PRE_INTEREST_INTAKE_URL</code> names the exact approved
+          HTTPS API endpoint.
+        </p>
+        <SafeIntakeForm
+          kind="pre-interest"
+          endpoint={endpoint}
+          submitLabel="Register pre-interest"
+          unavailableMessage="Pre-interest submission is not active yet. The page has not sent or stored your information."
+        >
+          <div class="field-grid">
+            <label>
+              Contact name
+              <input name="contactName" autocomplete="name" maxlength="120" required />
+            </label>
+            <label>
+              Email
+              <input name="contactEmail" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label>
+              Intended account type
+              <select name="accountType" required>
+                <option value="">Select one</option>
+                <option value="individual">Individual</option>
+                <option value="organization">Organization</option>
+                <option value="platform">Platform / application operator</option>
+                <option value="integration-partner">Integration partner</option>
+              </select>
+            </label>
+            <label>
+              Primary interest
+              <select name="primaryInterest" required>
+                <option value="">Select one</option>
+                <option value="hosted-auth">Hosted authentication</option>
+                <option value="organization-sso">Organization SSO</option>
+                <option value="mfa-passkeys">MFA, passkeys, or 3FA</option>
+                <option value="sdk-integration">Client SDK integration</option>
+                <option value="admin-revocation">Admin and revocation controls</option>
+                <option value="self-hosted">Self-hosted deployment</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Use case
+            <textarea
+              name="useCase"
+              minlength="20"
+              maxlength="2400"
+              required
+              placeholder="Applications, users, identity providers, assurance needs, client runtimes, or migration context…"
+            ></textarea>
+          </label>
+          <label>
+            Expected evaluation window
+            <select name="evaluationWindow">
+              <option value="unspecified">Not decided</option>
+              <option value="0-30-days">Within 30 days</option>
+              <option value="31-90-days">31–90 days</option>
+              <option value="3-6-months">3–6 months</option>
+              <option value="later">Later than 6 months</option>
+            </select>
+          </label>
+        </SafeIntakeForm>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>
