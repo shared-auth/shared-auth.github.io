@@ -3,7 +3,7 @@ import PublicLaunchShell from "../components/PublicLaunchShell.astro";
 import SafeIntakeForm from "../components/SafeIntakeForm.astro";
 import { publicIntakeConfig } from "../lib/public-intake.mjs";
 
-const { quote: endpoint } = publicIntakeConfig(import.meta.env);
+const { quote: endpoint } = publicIntakeConfig();
 ---
 
 <PublicLaunchShell
@@ -16,9 +16,9 @@ const { quote: endpoint } = publicIntakeConfig(import.meta.env);
     <div class="section-heading">
       <h2>Describe the system, not its secrets.</h2>
       <p>
-        The form sends a bounded JSON request directly to the configured
+        The form sends a bounded JSON request directly to the exact first-party
         customer API with cookies and referrers disabled. This static page does
-        not store submissions.
+        not store submissions or claim success when the API is unavailable.
       </p>
     </div>
     <div class="form-layout">
@@ -34,15 +34,16 @@ const { quote: endpoint } = publicIntakeConfig(import.meta.env);
       <article class="form-panel">
         <h2>Implementation quote</h2>
         <p>
-          Submission remains disabled until
-          <code>PUBLIC_QUOTE_INTAKE_URL</code> names the exact approved HTTPS API
-          endpoint.
+          Submission is pinned to
+          <code>api.ores-shared-auth.com/v1/quote-requests</code>. Until that API
+          origin is promoted, a failed request is reported as unavailable and
+          this page does not claim that information was accepted.
         </p>
         <SafeIntakeForm
           kind="quote"
           endpoint={endpoint}
           submitLabel="Submit quote request"
-          unavailableMessage="Quote submission is not active yet. The page has not sent or stored your information."
+          unavailableMessage="Quote submission is unavailable. The page has not sent or stored your information."
         >
           <div class="field-grid">
             <label>
