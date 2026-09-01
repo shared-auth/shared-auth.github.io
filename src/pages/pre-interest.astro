@@ -3,7 +3,7 @@ import PublicLaunchShell from "../components/PublicLaunchShell.astro";
 import SafeIntakeForm from "../components/SafeIntakeForm.astro";
 import { publicIntakeConfig } from "../lib/public-intake.mjs";
 
-const { preInterest: endpoint } = publicIntakeConfig(import.meta.env);
+const { preInterest: endpoint } = publicIntakeConfig();
 ---
 
 <PublicLaunchShell
@@ -34,15 +34,16 @@ const { preInterest: endpoint } = publicIntakeConfig(import.meta.env);
       <article class="form-panel">
         <h2>Pre-interest form</h2>
         <p>
-          Submission remains disabled until
-          <code>PUBLIC_PRE_INTEREST_INTAKE_URL</code> names the exact approved
-          HTTPS API endpoint.
+          Submission is pinned to
+          <code>api.ores-shared-auth.com/v1/pre-interest-registrations</code>.
+          Until that API origin is promoted, a failed request is reported as
+          unavailable and this page does not claim that information was accepted.
         </p>
         <SafeIntakeForm
           kind="pre-interest"
           endpoint={endpoint}
           submitLabel="Register pre-interest"
-          unavailableMessage="Pre-interest submission is not active yet. The page has not sent or stored your information."
+          unavailableMessage="Pre-interest submission is unavailable. The page has not sent or stored your information."
         >
           <div class="field-grid">
             <label>
