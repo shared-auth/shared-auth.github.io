@@ -16,7 +16,7 @@ const available = Boolean(endpoint);
   data-endpoint={endpoint}
   aria-disabled={available ? "false" : "true"}
   method="post"
-  action={endpoint || undefined}
+  action=""
 >
   <slot />
   <label class="honeypot" aria-hidden="true">
@@ -84,6 +84,7 @@ const available = Boolean(endpoint);
       }
       data.delete("website");
 
+      /** @type {Record<string, string>} */
       const fields = {};
       for (const [key, value] of data.entries()) {
         if (typeof value === "string") fields[key] = value.trim();
