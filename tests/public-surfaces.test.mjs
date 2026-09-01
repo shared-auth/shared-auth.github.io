@@ -19,8 +19,12 @@ test("all ores-shared-auth launch surfaces are source-controlled and built", () 
   }
 });
 
-test("public intake configuration is empty by default and accepts only exact API endpoints", () => {
-  assert.deepEqual(publicIntakeConfig(), { quote: "", preInterest: "" });
+test("public intake configuration pins only the exact first-party API endpoints", () => {
+  assert.deepEqual(publicIntakeConfig(), {
+    quote: "https://api.ores-shared-auth.com/v1/quote-requests",
+    preInterest: "https://api.ores-shared-auth.com/v1/pre-interest-registrations",
+  });
+  assert.equal(Object.isFrozen(publicIntakeConfig()), true);
   assert.equal(INTAKE_PATHS.quote, "/v1/quote-requests");
   assert.equal(INTAKE_PATHS["pre-interest"], "/v1/pre-interest-registrations");
   assert.equal(
@@ -41,6 +45,7 @@ test("public intake configuration is empty by default and accepts only exact API
 
 test("public intake configuration rejects endpoint drift before the site builds", () => {
   for (const value of [
+    "",
     "http://api.ores-shared-auth.com/v1/quote-requests",
     "https://auth.ores-shared-auth.com/v1/quote-requests",
     "https://api.ores-shared-auth.com/v1/quotes",
@@ -50,6 +55,22 @@ test("public intake configuration rejects endpoint drift before the site builds"
     assert.throws(() => resolveIntakeEndpoint("quote", value));
   }
   assert.throws(() => resolveIntakeEndpoint("unknown", ""));
+});
+
+test("the static-site environment schema remains limited to public dashboard routing", () => {
+  const envExample = readFileSync(new URL("../.env.example", import.meta.url), "utf8");
+  const variables = envExample
+    .split("\n")
+    .filter((line) => /^[A-Z][A-Z0-9_]*=/.test(line))
+    .map((line) => line.split("=", 1)[0])
+    .sort();
+  assert.deepEqual(variables, ["PUBLIC_DASHBOARD_URL", "PUBLIC_DASHBOARD_URL_ALLOWLIST"]);
+  for (const name of ["quote", "pre-interest"]) {
+    const astro = readFileSync(source(name), "utf8");
+    assert.ok(!astro.includes("import.meta.env"));
+    assert.ok(!astro.includes("PUBLIC_QUOTE_INTAKE_URL"));
+    assert.ok(!astro.includes("PUBLIC_PRE_INTEREST_INTAKE_URL"));
+  }
 });
 
 test("application selector links every exact public launch hostname", () => {
@@ -67,12 +88,18 @@ test("application selector links every exact public launch hostname", () => {
   assert.ok(!html.includes("org.ores-shared.auth.com"));
 });
 
-test("quote and pre-interest remain visibly disabled without approved API endpoints", () => {
-  for (const name of ["quote", "pre-interest"]) {
+test("quote and pre-interest submit only to their pinned first-party API URLs", () => {
+  const expected = {
+    quote: "https://api.ores-shared-auth.com/v1/quote-requests",
+    "pre-interest": "https://api.ores-shared-auth.com/v1/pre-interest-registrations",
+  };
+  for (const [name, endpoint] of Object.entries(expected)) {
     const html = readFileSync(page(name), "utf8");
-    assert.match(html, /<form[^>]*data-intake-form[^>]*aria-disabled="true"/);
-    assert.match(html, /<button type="submit" disabled/);
-    assert.ok(html.includes("has not sent or stored your information"));
+    assert.match(html, /<form[^>]*data-intake-form[^>]*aria-disabled="false"/);
+    assert.ok(html.includes(`data-endpoint="${endpoint}"`));
+    assert.ok(html.includes('method="post"'));
+    assert.ok(html.includes('action=""'));
+    assert.ok(html.includes("Ready to submit securely."));
     assert.ok(html.includes('name="referrer" content="no-referrer"'));
     assert.ok(!html.includes("Authorization: Bearer"));
     assert.ok(!html.includes("localStorage"));
