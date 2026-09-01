@@ -1,0 +1,103 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+import SafeIntakeForm from "../components/SafeIntakeForm.astro";
+import { publicIntakeConfig } from "../lib/public-intake.mjs";
+
+const { quote: endpoint } = publicIntakeConfig(import.meta.env);
+---
+
+<PublicLaunchShell
+  eyebrow="Quote request"
+  title="Scope the identity boundary before pricing it."
+  summary="Request a Shared Auth implementation quote for hosted authentication, assurance, client integrations, organization federation, or an isolated administration plane. Do not include credentials or sensitive identity records."
+  host="quote.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Describe the system, not its secrets.</h2>
+      <p>
+        The form sends a bounded JSON request directly to the configured
+        customer API with cookies and referrers disabled. This static page does
+        not store submissions.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>Useful quote inputs</h2>
+        <ul>
+          <li>Number and type of applications or services.</li>
+          <li>Expected monthly active users and peak login rate.</li>
+          <li>Required identity providers, MFA, passkeys, or 3FA flows.</li>
+          <li>Compliance, residency, availability, and migration constraints.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Implementation quote</h2>
+        <p>
+          Submission remains disabled until
+          <code>PUBLIC_QUOTE_INTAKE_URL</code> names the exact approved HTTPS API
+          endpoint.
+        </p>
+        <SafeIntakeForm
+          kind="quote"
+          endpoint={endpoint}
+          submitLabel="Submit quote request"
+          unavailableMessage="Quote submission is not active yet. The page has not sent or stored your information."
+        >
+          <div class="field-grid">
+            <label>
+              Contact name
+              <input name="contactName" autocomplete="name" maxlength="120" required />
+            </label>
+            <label>
+              Work email
+              <input name="contactEmail" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label>
+              Organization
+              <input name="organization" autocomplete="organization" maxlength="160" />
+            </label>
+            <label>
+              Deployment target
+              <select name="deploymentTarget" required>
+                <option value="">Select one</option>
+                <option value="hosted">Hosted Shared Auth</option>
+                <option value="self-hosted">Self-hosted / private cloud</option>
+                <option value="hybrid">Hybrid edge and private origin</option>
+                <option value="unsure">Need architecture guidance</option>
+              </select>
+            </label>
+            <label>
+              Monthly active users
+              <input name="monthlyActiveUsers" type="number" min="0" max="1000000000" inputmode="numeric" />
+            </label>
+            <label>
+              Application count
+              <input name="applicationCount" type="number" min="1" max="100000" inputmode="numeric" />
+            </label>
+          </div>
+          <label>
+            Identity and assurance requirements
+            <textarea
+              name="requirements"
+              minlength="20"
+              maxlength="4000"
+              required
+              placeholder="Identity providers, MFA/passkeys/3FA, client runtimes, migration constraints, availability goals…"
+            ></textarea>
+          </label>
+          <label>
+            Target timeline
+            <select name="targetTimeline">
+              <option value="unspecified">Not decided</option>
+              <option value="0-30-days">Within 30 days</option>
+              <option value="31-90-days">31–90 days</option>
+              <option value="3-6-months">3–6 months</option>
+              <option value="6-plus-months">More than 6 months</option>
+            </select>
+          </label>
+        </SafeIntakeForm>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>
