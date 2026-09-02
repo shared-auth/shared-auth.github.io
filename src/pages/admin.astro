@@ -1,0 +1,47 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+---
+
+<PublicLaunchShell
+  eyebrow="Isolated operator plane"
+  title="Administration requires more than a signed-in identity."
+  summary="The Shared Auth operator surface is separate from customer authentication. It must require an allow-listed administrator, the correct realm and organization, fresh assurance, CSRF protection, and authoritative server-side authorization."
+  host="admin.ores-shared-auth.com"
+  status="Restricted administration surface"
+  robots="noindex,nofollow"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Fail closed until the admin realm is ready.</h2>
+      <p>
+        This static handoff does not render users, sessions, roles, secrets, or
+        audit records. The deployed administration service replaces it only
+        after realm-isolation, origin, certificate, and revocation gates pass.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>Required controls</h2>
+        <ul>
+          <li>Separate admin issuer, audience, database, keys, and limiter state.</li>
+          <li>Fresh AAL2/LOA2 ceremony for sensitive operations.</li>
+          <li>Host-scoped secure cookies and replay-resistant CSRF validation.</li>
+          <li>Auditable, idempotent revocation with no cross-realm side effects.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Admin API boundary</h2>
+        <p>
+          The canonical machine-facing hostname is
+          <code>api-admin.ores-shared-auth.com</code>. The compatibility hostname
+          <code>admin-api.ores-shared-auth.com</code> reaches the same service
+          directly so mutating requests are not redirected and replayed.
+        </p>
+        <div class="action-row">
+          <a class="button" href="https://api-admin.ores-shared-auth.com/edge/healthz">Check admin API edge</a>
+          <a class="button secondary" href="https://app.ores-shared-auth.com">Return to applications</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>

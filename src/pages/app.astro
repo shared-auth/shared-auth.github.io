@@ -1,0 +1,78 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+
+const surfaces = [
+  {
+    label: "PERSONAL",
+    title: "Individual account",
+    body: "Start a personal Shared Auth session without inheriting organization roles or tenant authority.",
+    href: "https://user.ores-shared-auth.com",
+    action: "Open user entry →",
+  },
+  {
+    label: "ORGANIZATION",
+    title: "Organization account",
+    body: "Enter an organization-scoped application only after membership and local authorization are resolved by that product.",
+    href: "https://org.ores-shared-auth.com",
+    action: "Open organization entry →",
+  },
+  {
+    label: "OPERATIONS",
+    title: "Administration",
+    body: "Use the isolated operator surface. A verified identity alone never grants administrative authority.",
+    href: "https://admin.ores-shared-auth.com",
+    action: "Open admin entry →",
+  },
+  {
+    label: "INTEGRATION",
+    title: "Customer API",
+    body: "Reach the customer-facing API authority. Until an origin is promoted, the edge returns a bounded 503 rather than auth content.",
+    href: "https://api.ores-shared-auth.com/edge/healthz",
+    action: "Check API edge →",
+  },
+  {
+    label: "PLANNING",
+    title: "Request a quote",
+    body: "Describe the identity surface, assurance requirements, application count, and expected usage without sharing secrets.",
+    href: "https://quote.ores-shared-auth.com",
+    action: "Open quote intake →",
+  },
+  {
+    label: "EARLY ACCESS",
+    title: "Register pre-interest",
+    body: "Register interest in the hosted Shared Auth service while the production intake API remains explicitly gated.",
+    href: "https://pre-interest.ores-shared-auth.com",
+    action: "Open pre-interest →",
+  },
+];
+---
+
+<PublicLaunchShell
+  eyebrow="Application selector"
+  title="Choose the boundary you intend to enter."
+  summary="Shared Auth keeps personal, organization, operator, and machine-facing surfaces distinct. Select a public entry point without treating authentication as product authorization."
+  host="app.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Explicit entry points.</h2>
+      <p>
+        Every hostname is matched exactly at the edge. Unknown hosts fail before
+        any origin request, and unconfigured APIs never fall through to the
+        authentication service.
+      </p>
+    </div>
+    <div class="card-grid">
+      {
+        surfaces.map((surface) => (
+          <a class="card" href={surface.href}>
+            <small>{surface.label}</small>
+            <h3>{surface.title}</h3>
+            <p>{surface.body}</p>
+            <b>{surface.action}</b>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</PublicLaunchShell>

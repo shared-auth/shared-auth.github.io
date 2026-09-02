@@ -1,0 +1,42 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+---
+
+<PublicLaunchShell
+  eyebrow="Organization account"
+  title="Enter an organization without making identity the role system."
+  summary="This surface begins an organization-oriented journey while preserving the boundary between verified identity, organization membership, product roles, and resource authorization."
+  host="org.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Membership is a separate proof.</h2>
+      <p>
+        A valid Shared Auth session is necessary but not sufficient. The target
+        product must resolve the selected organization, membership status,
+        role, and resource policy independently.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>Organization guardrails</h2>
+        <ul>
+          <li>Email-domain matching is discovery only, never membership authority.</li>
+          <li>Invitations and verified memberships must resolve to immutable principals.</li>
+          <li>Switching organizations requires an explicit product-local authorization decision.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Continue through Shared Auth</h2>
+        <p>
+          Authenticate first, then let the destination application present its
+          organization chooser and enforce its own authorization rules.
+        </p>
+        <div class="action-row">
+          <a class="button" href="https://auth.ores-shared-auth.com">Open authentication</a>
+          <a class="button secondary" href="https://app.ores-shared-auth.com">Choose another entry</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>

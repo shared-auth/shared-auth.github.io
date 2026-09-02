@@ -1,0 +1,137 @@
+---
+interface Props {
+  kind: "quote" | "preInterest";
+  endpoint: string;
+  submitLabel: string;
+  unavailableMessage: string;
+  consentText: string;
+  turnstileSiteKey: string;
+  turnstileAction: string;
+}
+
+const {
+  kind,
+  endpoint,
+  submitLabel,
+  unavailableMessage,
+  consentText,
+  turnstileSiteKey,
+  turnstileAction,
+} = Astro.props;
+const enabled = Boolean(endpoint && turnstileSiteKey);
+---
+
+<form
+  data-intake-form
+  data-kind={kind}
+  data-endpoint={endpoint}
+  data-enabled={enabled ? "true" : "false"}
+  aria-disabled={enabled ? "false" : "true"}
+  method="post"
+  action=""
+  novalidate
+>
+  <slot />
+  <label class="honeypot" aria-hidden="true">
+    Website
+    <input name="website" type="text" tabindex="-1" autocomplete="off" />
+  </label>
+  <label class="consent">
+    <input name="contact_consent" type="checkbox" value="yes" required />
+    <span>{consentText}</span>
+  </label>
+  <p class="sensitive-data-warning">
+    Do not submit passwords, access tokens, private keys, session cookies,
+    recovery codes, payment-card data, or regulated identity documents.
+  </p>
+  {
+    turnstileSiteKey ? (
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-action={turnstileAction}
+        data-theme="dark"
+        data-retry="auto"
+        data-refresh-expired="auto"
+        data-response-field-name="cf-turnstile-response"
+      ></div>
+    ) : (
+      <p class="configuration-error" role="alert">
+        Submissions are disabled until the public abuse-prevention site key is configured.
+      </p>
+    )
+  }
+  <div class="action-row">
+    <button type="submit" disabled={!enabled}>{submitLabel}</button>
+    <a class="button secondary" href="https://github.com/shared-auth" rel="noreferrer noopener">
+      Review the platform
+    </a>
+  </div>
+  <p
+    class="form-status"
+    data-form-status
+    data-state={enabled ? "ready" : "error"}
+    role="status"
+    aria-live="polite"
+  >
+    {enabled ? "Complete the abuse-prevention check, then submit." : unavailableMessage}
+  </p>
+</form>
+
+<script>
+  import { bindIntakeForms } from "../lib/public-intake.mjs";
+
+  bindIntakeForms();
+</script>
+
+<style is:global>
+  [data-intake-form] fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+  }
+
+  [data-intake-form] legend {
+    padding-inline: 0.35rem;
+    color: var(--ink);
+    font-weight: 720;
+  }
+
+  [data-intake-form] .check-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+  }
+
+  [data-intake-form] .check-grid label,
+  [data-intake-form] .consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  [data-intake-form] .check-grid input,
+  [data-intake-form] .consent input {
+    width: auto;
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+  }
+
+  [data-intake-form] .sensitive-data-warning,
+  [data-intake-form] .configuration-error {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  [data-intake-form] .configuration-error {
+    color: #ffb4b4;
+  }
+
+  [data-intake-form] .cf-turnstile {
+    min-height: 4.1rem;
+  }
+</style>
