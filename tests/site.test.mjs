@@ -25,7 +25,10 @@ test("landing page exposes assurance, polyglot clients, and a dashboard CTA", ()
   const dashboardLinks = html.match(/<a\b[^>]*href="\/dashboard\/"[^>]*>/g) ?? [];
   assert.ok(dashboardLinks.length >= 2, "homepage must expose dashboard links in both the navigation and hero");
   assert.match(html, /<nav>.*<a class="nav-dashboard" href="\/dashboard\/">Dashboard<\/a><\/nav>/);
-  assert.match(html, /<div class="actions"><a class="dashboard-cta" href="\/dashboard\/"/);
+  assert.match(
+    html,
+    /<div class="public-actions"[^>]*aria-label="Shared Auth public actions"[^>]*>[\s\S]*?<a class="dashboard-cta" href="\/dashboard\/"/,
+  );
   assert.ok(
     html.includes('aria-label="Open the Shared Auth dashboard handoff"'),
     "hero dashboard CTA must retain its accessible label",
