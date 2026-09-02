@@ -1,22 +1,35 @@
 ---
 interface Props {
-  kind: "quote" | "pre-interest";
+  kind: "quote" | "preInterest";
   endpoint: string;
   submitLabel: string;
   unavailableMessage: string;
+  consentText: string;
+  turnstileSiteKey: string;
+  turnstileAction: string;
 }
 
-const { kind, endpoint, submitLabel, unavailableMessage } = Astro.props;
-const available = Boolean(endpoint);
+const {
+  kind,
+  endpoint,
+  submitLabel,
+  unavailableMessage,
+  consentText,
+  turnstileSiteKey,
+  turnstileAction,
+} = Astro.props;
+const enabled = Boolean(endpoint && turnstileSiteKey);
 ---
 
 <form
   data-intake-form
   data-kind={kind}
   data-endpoint={endpoint}
-  aria-disabled={available ? "false" : "true"}
+  data-enabled={enabled ? "true" : "false"}
+  aria-disabled={enabled ? "false" : "true"}
   method="post"
   action=""
+  novalidate
 >
   <slot />
   <label class="honeypot" aria-hidden="true">
@@ -24,15 +37,32 @@ const available = Boolean(endpoint);
     <input name="website" type="text" tabindex="-1" autocomplete="off" />
   </label>
   <label class="consent">
-    <input name="consent" type="checkbox" value="accepted" required />
-    <span>
-      I consent to Shared Auth using this information only to respond to this
-      request. I will not submit passwords, access tokens, private keys, session
-      cookies, or regulated identity documents.
-    </span>
+    <input name="contact_consent" type="checkbox" value="yes" required />
+    <span>{consentText}</span>
   </label>
+  <p class="sensitive-data-warning">
+    Do not submit passwords, access tokens, private keys, session cookies,
+    recovery codes, payment-card data, or regulated identity documents.
+  </p>
+  {
+    turnstileSiteKey ? (
+      <div
+        class="cf-turnstile"
+        data-sitekey={turnstileSiteKey}
+        data-action={turnstileAction}
+        data-theme="dark"
+        data-retry="auto"
+        data-refresh-expired="auto"
+        data-response-field-name="cf-turnstile-response"
+      ></div>
+    ) : (
+      <p class="configuration-error" role="alert">
+        Submissions are disabled until the public abuse-prevention site key is configured.
+      </p>
+    )
+  }
   <div class="action-row">
-    <button type="submit" disabled={!available}>{submitLabel}</button>
+    <button type="submit" disabled={!enabled}>{submitLabel}</button>
     <a class="button secondary" href="https://github.com/shared-auth" rel="noreferrer noopener">
       Review the platform
     </a>
@@ -40,95 +70,68 @@ const available = Boolean(endpoint);
   <p
     class="form-status"
     data-form-status
-    data-state={available ? "ready" : "error"}
+    data-state={enabled ? "ready" : "error"}
     role="status"
     aria-live="polite"
   >
-    {available ? "Ready to submit securely." : unavailableMessage}
+    {enabled ? "Complete the abuse-prevention check, then submit." : unavailableMessage}
   </p>
 </form>
 
 <script>
-  const MAX_BODY_BYTES = 16 * 1024;
-  const REQUEST_TIMEOUT_MS = 8_000;
+  import { bindIntakeForms } from "../lib/public-intake.mjs";
 
-  for (const form of document.querySelectorAll("[data-intake-form]")) {
-    if (!(form instanceof HTMLFormElement)) continue;
-
-    const endpoint = form.dataset.endpoint ?? "";
-    const kind = form.dataset.kind ?? "";
-    const status = form.querySelector("[data-form-status]");
-    const submit = form.querySelector('button[type="submit"]');
-
-    const show = (message, state) => {
-      if (!(status instanceof HTMLElement)) return;
-      status.textContent = message;
-      status.dataset.state = state;
-    };
-
-    if (!endpoint) {
-      form.setAttribute("aria-disabled", "true");
-      if (submit instanceof HTMLButtonElement) submit.disabled = true;
-      continue;
-    }
-
-    form.addEventListener("submit", async (event) => {
-      event.preventDefault();
-      if (!form.reportValidity()) return;
-
-      const data = new FormData(form);
-      if (String(data.get("website") ?? "").trim()) {
-        form.reset();
-        show("Request received.", "success");
-        return;
-      }
-      data.delete("website");
-
-      /** @type {Record<string, string>} */
-      const fields = {};
-      for (const [key, value] of data.entries()) {
-        if (typeof value === "string") fields[key] = value.trim();
-      }
-      const body = JSON.stringify({
-        contractVersion: "shared-auth.public-intake.v1",
-        kind,
-        fields,
-      });
-
-      if (new TextEncoder().encode(body).byteLength > MAX_BODY_BYTES) {
-        show("The request is too large. Shorten the free-text fields and try again.", "error");
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-      if (submit instanceof HTMLButtonElement) submit.disabled = true;
-      show("Submitting…", "ready");
-
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: {
-            accept: "application/json",
-            "content-type": "application/json",
-          },
-          body,
-          cache: "no-store",
-          credentials: "omit",
-          redirect: "error",
-          referrerPolicy: "no-referrer",
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("intake unavailable");
-
-        form.reset();
-        show("Request accepted. Shared Auth will respond through the contact channel you supplied.", "success");
-      } catch {
-        show("Submission is unavailable. Nothing was stored by this page; try again after the API is ready.", "error");
-      } finally {
-        clearTimeout(timeout);
-        if (submit instanceof HTMLButtonElement) submit.disabled = false;
-      }
-    });
-  }
+  bindIntakeForms();
 </script>
+
+<style is:global>
+  [data-intake-form] fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.8rem;
+  }
+
+  [data-intake-form] legend {
+    padding-inline: 0.35rem;
+    color: var(--ink);
+    font-weight: 720;
+  }
+
+  [data-intake-form] .check-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem 1rem;
+  }
+
+  [data-intake-form] .check-grid label,
+  [data-intake-form] .consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+  }
+
+  [data-intake-form] .check-grid input,
+  [data-intake-form] .consent input {
+    width: auto;
+    flex: 0 0 auto;
+    margin-top: 0.2rem;
+  }
+
+  [data-intake-form] .sensitive-data-warning,
+  [data-intake-form] .configuration-error {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  [data-intake-form] .configuration-error {
+    color: #ffb4b4;
+  }
+
+  [data-intake-form] .cf-turnstile {
+    min-height: 4.1rem;
+  }
+</style>

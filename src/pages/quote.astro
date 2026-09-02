@@ -1,104 +1,204 @@
 ---
 import PublicLaunchShell from "../components/PublicLaunchShell.astro";
 import SafeIntakeForm from "../components/SafeIntakeForm.astro";
-import { publicIntakeConfig } from "../lib/public-intake.mjs";
+import {
+  TURNSTILE_ACTIONS,
+  normalizeTurnstileSiteKey,
+  publicIntakeConfig,
+} from "../lib/public-intake.mjs";
 
 const { quote: endpoint } = publicIntakeConfig();
+const turnstileSiteKey = normalizeTurnstileSiteKey(
+  import.meta.env.PUBLIC_TURNSTILE_SITE_KEY,
+);
 ---
 
 <PublicLaunchShell
   eyebrow="Quote request"
   title="Scope the identity boundary before pricing it."
-  summary="Request a Shared Auth implementation quote for hosted authentication, assurance, client integrations, organization federation, or an isolated administration plane. Do not include credentials or sensitive identity records."
+  summary="Request a non-binding Shared Auth implementation quote for hosted authentication, assurance, organization federation, client integrations, support, and availability objectives. Do not include credentials or sensitive identity records."
   host="quote.ores-shared-auth.com"
 >
   <section class="surface">
     <div class="section-heading">
       <h2>Describe the system, not its secrets.</h2>
       <p>
-        The form sends a bounded JSON request directly to the exact first-party
-        customer API with cookies and referrers disabled. This static page does
-        not store submissions or claim success when the API is unavailable.
+        The browser creates a closed, bounded request and sends it only to the
+        exact first-party API without cookies or a referrer. A UUID v4
+        idempotency key protects safe retries. This static page stores nothing
+        and never claims acceptance from an unexpected API response.
       </p>
     </div>
     <div class="form-layout">
       <aside class="notice">
         <h2>Useful quote inputs</h2>
         <ul>
-          <li>Number and type of applications or services.</li>
-          <li>Expected monthly active users and peak login rate.</li>
-          <li>Required identity providers, MFA, passkeys, or 3FA flows.</li>
-          <li>Compliance, residency, availability, and migration constraints.</li>
+          <li>Applications, monthly users, and authentication-event volume.</li>
+          <li>Identity providers, MFA, passkeys, and 3FA assurance needs.</li>
+          <li>Hosted, self-hosted, or hybrid deployment boundaries.</li>
+          <li>Support tier, SLO target, residency, migration, and timeline.</li>
         </ul>
+        <p>
+          This request creates no account, invoice, charge, binding price,
+          purchase commitment, role, tenant, or authorization grant.
+        </p>
       </aside>
       <article class="form-panel">
         <h2>Implementation quote</h2>
         <p>
           Submission is pinned to
-          <code>api.ores-shared-auth.com/v1/quote-requests</code>. Until that API
-          origin is promoted, a failed request is reported as unavailable and
-          this page does not claim that information was accepted.
+          <code>api.ores-shared-auth.com/v1/quote-requests</code>. The API must
+          verify Turnstile, the exact source host, the closed schema, consent,
+          and idempotency before persisting approved fields.
         </p>
         <SafeIntakeForm
           kind="quote"
           endpoint={endpoint}
           submitLabel="Submit quote request"
-          unavailableMessage="Quote submission is unavailable. The page has not sent or stored your information."
+          unavailableMessage="Quote submission is unavailable. This page has not sent or stored your information."
+          consentText="I consent to Shared Auth storing and reviewing this request and contacting me only to respond to it."
+          turnstileSiteKey={turnstileSiteKey}
+          turnstileAction={TURNSTILE_ACTIONS.quote}
         >
           <div class="field-grid">
             <label>
               Contact name
-              <input name="contactName" autocomplete="name" maxlength="120" required />
+              <input name="name" autocomplete="name" maxlength="120" />
             </label>
             <label>
               Work email
-              <input name="contactEmail" type="email" autocomplete="email" maxlength="254" required />
+              <input name="email" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label>
+              Party type
+              <select name="party_type" required>
+                <option value="">Select one</option>
+                <option value="individual">Individual / developer</option>
+                <option value="organization">Organization</option>
+              </select>
             </label>
             <label>
               Organization
-              <input name="organization" autocomplete="organization" maxlength="160" />
+              <input name="organization_name" autocomplete="organization" maxlength="160" />
             </label>
             <label>
               Deployment target
-              <select name="deploymentTarget" required>
+              <select name="deployment_target" required>
                 <option value="">Select one</option>
                 <option value="hosted">Hosted Shared Auth</option>
-                <option value="self-hosted">Self-hosted / private cloud</option>
+                <option value="self_hosted">Self-hosted / private cloud</option>
                 <option value="hybrid">Hybrid edge and private origin</option>
                 <option value="unsure">Need architecture guidance</option>
               </select>
             </label>
             <label>
-              Monthly active users
-              <input name="monthlyActiveUsers" type="number" min="0" max="1000000000" inputmode="numeric" />
+              Application count
+              <input
+                name="application_count"
+                type="number"
+                min="1"
+                max="100000"
+                value="1"
+                inputmode="numeric"
+                required
+              />
             </label>
             <label>
-              Application count
-              <input name="applicationCount" type="number" min="1" max="100000" inputmode="numeric" />
+              Monthly active users
+              <input
+                name="monthly_active_users"
+                type="number"
+                min="1"
+                max="1000000000"
+                value="1000"
+                inputmode="numeric"
+                required
+              />
+            </label>
+            <label>
+              Monthly authentication events
+              <input
+                name="monthly_auth_events"
+                type="number"
+                min="1"
+                max="1000000000"
+                value="10000"
+                inputmode="numeric"
+                required
+              />
+            </label>
+            <label>
+              MFA / assurance
+              <select name="mfa" required>
+                <option value="optional">Optional</option>
+                <option value="required">Required for every account</option>
+                <option value="step_up">Risk-based / step-up</option>
+                <option value="three_factor">ORES 3FA workflow</option>
+              </select>
+            </label>
+            <label>
+              Support tier
+              <select name="support_tier" required>
+                <option value="standard">Standard</option>
+                <option value="priority">Priority</option>
+                <option value="enterprise">Enterprise</option>
+                <option value="custom">Custom B2B support plan</option>
+              </select>
+            </label>
+            <label>
+              Availability objective
+              <select name="availability_target" required>
+                <option value="best_effort">Best effort / evaluation</option>
+                <option value="99.9">99.9%</option>
+                <option value="99.95">99.95%</option>
+                <option value="99.99">99.99%</option>
+                <option value="custom">Custom SLO / SLA discussion</option>
+              </select>
+            </label>
+            <label>
+              Target timeline
+              <select name="target_timeline" required>
+                <option value="unspecified">Not decided</option>
+                <option value="0_30_days">Within 30 days</option>
+                <option value="31_90_days">31–90 days</option>
+                <option value="3_6_months">3–6 months</option>
+                <option value="6_plus_months">More than 6 months</option>
+              </select>
             </label>
           </div>
+          <fieldset>
+            <legend>Identity providers</legend>
+            <div class="check-grid">
+              <label><input type="checkbox" name="sso_providers" value="google" /> Google</label>
+              <label><input type="checkbox" name="sso_providers" value="github" /> GitHub</label>
+              <label><input type="checkbox" name="sso_providers" value="microsoft" /> Microsoft</label>
+              <label><input type="checkbox" name="sso_providers" value="saml" /> SAML</label>
+              <label><input type="checkbox" name="sso_providers" value="oidc" /> Custom OIDC</label>
+            </div>
+          </fieldset>
           <label>
-            Identity and assurance requirements
+            Identity, migration, residency, and assurance requirements
             <textarea
               name="requirements"
               minlength="20"
               maxlength="4000"
               required
-              placeholder="Identity providers, MFA/passkeys/3FA, client runtimes, migration constraints, availability goals…"
+              placeholder="Identity providers, passkeys or 3FA, client runtimes, admin isolation, migration constraints, data residency, incident response, availability, and support needs…"
             ></textarea>
-          </label>
-          <label>
-            Target timeline
-            <select name="targetTimeline">
-              <option value="unspecified">Not decided</option>
-              <option value="0-30-days">Within 30 days</option>
-              <option value="31-90-days">31–90 days</option>
-              <option value="3-6-months">3–6 months</option>
-              <option value="6-plus-months">More than 6 months</option>
-            </select>
           </label>
         </SafeIntakeForm>
       </article>
     </div>
   </section>
 </PublicLaunchShell>
+
+{
+  turnstileSiteKey && (
+    <script
+      is:inline
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+    ></script>
+  )
+}

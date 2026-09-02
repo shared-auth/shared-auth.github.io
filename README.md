@@ -33,6 +33,30 @@ Every configured URL is validated during the Astro build and must:
 
 When the target is absent, the page stays fail-closed and displays a provisioning notice rather than redirecting to an invented endpoint. A present but invalid or unlisted target fails the build without echoing the rejected URL.
 
+## Public quote and pre-interest intake
+
+The dedicated public surfaces are:
+
+- `https://quote.ores-shared-auth.com/`;
+- `https://pre-interest.ores-shared-auth.com/`.
+
+They submit closed, bounded JSON only to the exact public API endpoints defined
+in `src/lib/public-intake.mjs`. The forms use UUID v4 idempotency, an eight-second
+timeout, no browser credentials or referrer, a locally absorbed honeypot,
+purpose-limited consent, and a Cloudflare Turnstile challenge. Pre-interest
+marketing consent is separate and optional.
+
+Set `PUBLIC_TURNSTILE_SITE_KEY` as a GitHub repository variable only after its
+matching secret and exact hostname/action verification are provisioned in the
+Rust API. The site key is public; the secret must never enter this repository.
+Without a valid site key the forms remain visibly disabled.
+
+Building or deploying these pages is not evidence that intake is operational.
+The API, exact-origin CORS, server-side Turnstile verification, durable
+idempotent Postgres persistence, origin-side abuse limits, redacted telemetry,
+and live canaries must pass before an API origin is promoted. See
+`docs/public-intake.md`.
+
 ## Independent evidence
 
 The exact Astro source, ORES contracts, and web-server seed are exercised in `shared-auth-test/contract-conformance-tests`. That lane performs a clean `npm ci`, builds the static site, runs the source tests, and records the build artifact independently of production-organization Actions billing.
