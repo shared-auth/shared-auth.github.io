@@ -1,6 +1,7 @@
 ---
 import ClientShowcase from "../components/ClientShowcase.astro";
 import DashboardCta from "../components/DashboardCta.astro";
+import AnnouncementBar from "../components/AnnouncementBar.astro";
 const features = [
   [
     "Protected introspection",
@@ -107,6 +108,13 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
       Shared Auth — identity with explicit assurance
     </title></head
   ><body>
+    <AnnouncementBar
+      storageKey="site-announcement:shared-auth:v1"
+      message="Happy 2026, y’all!"
+      href="https://github.com/shared-auth"
+      linkLabel="See what we’re building"
+      tone="ember"
+    />
     <header>
       <a class="brand" href="/"><b>A</b> Shared Auth</a><nav>
         <a href="#platform">Platform</a><a href="#clients">Clients</a><a
