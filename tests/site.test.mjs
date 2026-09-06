@@ -24,7 +24,7 @@ test("landing page exposes assurance, polyglot clients, and explicit user and or
   for (const expected of [
     "Shared Auth",
     "Select client language",
-    "Protected introspection",
+    "protected introspection",
     "Rust",
     "TypeScript",
     "Dart / Flutter",
@@ -133,4 +133,9 @@ test("all workflow dependencies are immutable and checkouts drop credentials", (
   const pages = readFileSync(workflows[1], "utf8");
   assert.ok(pages.includes("npm ci --ignore-scripts --no-audit --no-fund"));
   assert.ok(!pages.includes("npm install --package-lock-only"));
+
+  const browser = readFileSync(workflows[0], "utf8");
+  assert.ok(browser.includes("skip_repository_commands: false"));
+  assert.ok(browser.includes("app_page: index.html"));
+  assert.ok(browser.includes("- 'src/**'"));
 });
