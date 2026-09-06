@@ -11,7 +11,7 @@ import {
   resolveIntakeEndpoint,
 } from "../src/lib/public-intake.mjs";
 
-const surfaces = ["app", "user", "org", "admin", "quote", "pre-interest"];
+const surfaces = ["app", "user", "org", "m", "admin", "quote", "pre-interest"];
 const page = (name) => new URL(`../dist/${name}/index.html`, import.meta.url);
 const source = (name) => new URL(`../src/pages/${name}.astro`, import.meta.url);
 
@@ -95,6 +95,7 @@ test("application selector links every exact public launch hostname", () => {
   for (const hostname of [
     "user.ores-shared-auth.com",
     "org.ores-shared-auth.com",
+    "m.ores-shared-auth.com",
     "admin.ores-shared-auth.com",
     "api.ores-shared-auth.com",
     "quote.ores-shared-auth.com",
@@ -103,6 +104,18 @@ test("application selector links every exact public launch hostname", () => {
     assert.ok(html.includes(hostname), `missing ${hostname}`);
   }
   assert.ok(!html.includes("org.ores-shared.auth.com"));
+});
+
+test("mobile surface is credential-free and hands off only to exact user and organization hosts", () => {
+  const html = readFileSync(page("m"), "utf8");
+  assert.ok(html.includes("m.ores-shared-auth.com"));
+  assert.ok(html.includes("https://user.ores-shared-auth.com"));
+  assert.ok(html.includes("https://org.ores-shared-auth.com"));
+  assert.ok(!html.includes("org.ores-shared.auth.com"));
+  assert.ok(!html.includes("Authorization: Bearer"));
+  assert.ok(!html.includes("localStorage"));
+  assert.ok(!html.includes("sessionStorage"));
+  assert.ok(!html.includes("document.cookie"));
 });
 
 test("quote and pre-interest forms retain empty HTML actions and exact API data endpoints", () => {
