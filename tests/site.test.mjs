@@ -140,20 +140,27 @@ test("all workflow dependencies are immutable and checkouts drop credentials", (
   assert.ok(browser.includes("- 'src/**'"));
 });
 
-test("the custom apex domain is actually bound in the artifact", () => {
-  // astro.config.mjs naming ores-shared-auth.com only sets the canonical URL
-  // used when generating absolute links. What makes GitHub Pages serve the
-  // domain is a CNAME file in the published artifact, and public/ is the only
-  // place that survives the build.
-  const cname = readFileSync(new URL("../public/CNAME", import.meta.url), "utf8").trim();
-  assert.equal(cname, "ores-shared-auth.com");
-  assert.ok(existsSync(new URL("../dist/CNAME", import.meta.url)), "CNAME must reach dist/");
+test("this artifact must NOT claim the apex domain with a CNAME file", () => {
+  // Counter-intuitive, and the reason is worth keeping written down.
+  //
+  // ores-shared-auth.com is served by the shared-auth-gateway Worker, whose
+  // PUBLIC_SITE_ORIGIN is https://shared-auth.github.io - it fetches this
+  // artifact and proxies it. A CNAME file here would make GitHub Pages start
+  // 301-redirecting shared-auth.github.io to ores-shared-auth.com. The Worker
+  // fetches with redirect: "manual" and passes the response through, so every
+  // marketing request would become a redirect back to itself.
+  //
+  // astro.config.mjs still names ores-shared-auth.com, because that is the
+  // canonical origin for generated absolute links. Naming it there and binding
+  // it here are different things, and only the first one is wanted.
+  assert.ok(
+    !existsSync(new URL("../public/CNAME", import.meta.url)),
+    "a CNAME file would loop the gateway's static origin back through itself",
+  );
+  assert.ok(!existsSync(new URL("../dist/CNAME", import.meta.url)));
 
   const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
-  assert.ok(
-    config.includes(`site: "https://${cname}"`),
-    "astro.config.mjs and public/CNAME must name the same host",
-  );
+  assert.ok(config.includes('site: "https://ores-shared-auth.com"'));
 });
 
 test("crawler directives keep the private surfaces out of the index", () => {
