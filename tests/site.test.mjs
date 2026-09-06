@@ -69,12 +69,11 @@ test("the header is sticky on every page", () => {
 });
 
 test("the admin API hostname follows the canonical subdomain contract", async () => {
-  // AGENTS.md fixes the label as api-admin. admin-api is kept as an alias so
-  // that anything which already learned that name keeps working, but the
-  // canonical origin is the one the site renders.
+  // AGENTS.md fixes the label as api-admin, and there is deliberately no
+  // second spelling: one administrative surface, one name.
   const hosts = await import("../src/lib/site-hosts.mjs");
   assert.equal(hosts.ADMIN_API_ORIGIN, "https://api-admin.ores-shared-auth.com");
-  assert.equal(hosts.ADMIN_API_ALIAS_ORIGIN, "https://admin-api.ores-shared-auth.com");
+  assert.equal(hosts.ADMIN_API_ALIAS_ORIGIN, undefined);
   for (const [name, expected] of [
     ["USER_ORIGIN", "https://user.ores-shared-auth.com"],
     ["ORG_ORIGIN", "https://org.ores-shared-auth.com"],
@@ -87,6 +86,7 @@ test("the admin API hostname follows the canonical subdomain contract", async ()
   }
   const docs = readFileSync(new URL("../dist/docs/index.html", import.meta.url), "utf8");
   assert.ok(docs.includes("api-admin.ores-shared-auth.com"));
+  assert.ok(!docs.includes("admin-api.ores-shared-auth.com"), "the retired spelling must not be published");
 });
 
 test("the marketing surface ships the capability, roadmap, security and docs pages", () => {
