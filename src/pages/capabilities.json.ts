@@ -1,7 +1,7 @@
 import {
-  capabilityLedger,
   capabilityStatuses,
-} from "../lib/capability-ledger.mjs";
+  platformContract,
+} from "../lib/platform-contract.mjs";
 
 export const prerender = true;
 
@@ -9,7 +9,7 @@ export function GET() {
   return new Response(
     JSON.stringify(
       {
-        ...capabilityLedger,
+        ...platformContract,
         statusDefinitions: capabilityStatuses,
       },
       null,
