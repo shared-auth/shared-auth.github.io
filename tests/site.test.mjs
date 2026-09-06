@@ -58,6 +58,37 @@ test("the custom apex domain is bound and the site canonicalises to it", () => {
   assert.ok(robots.includes("Disallow: /dashboard/"), "the dashboard handoff must stay out of the index");
 });
 
+test("the header is sticky on every page", () => {
+  // ORESoftware/my-ai AGENTS.md asks for a sticky header and strong shared
+  // header and footer across every organization marketing site.
+  for (const page of ["index", "features/index", "roadmap/index", "security/index", "docs/index", "login/index"]) {
+    const html = readFileSync(new URL(`../dist/${page}.html`, import.meta.url), "utf8");
+    assert.match(html, /header\s*\{[^}]*position:\s*sticky/, `${page} lost the sticky header`);
+    assert.ok(html.includes("<footer"), `${page} lost the shared footer`);
+  }
+});
+
+test("the admin API hostname follows the canonical subdomain contract", async () => {
+  // AGENTS.md fixes the label as api-admin. admin-api is kept as an alias so
+  // that anything which already learned that name keeps working, but the
+  // canonical origin is the one the site renders.
+  const hosts = await import("../src/lib/site-hosts.mjs");
+  assert.equal(hosts.ADMIN_API_ORIGIN, "https://api-admin.ores-shared-auth.com");
+  assert.equal(hosts.ADMIN_API_ALIAS_ORIGIN, "https://admin-api.ores-shared-auth.com");
+  for (const [name, expected] of [
+    ["USER_ORIGIN", "https://user.ores-shared-auth.com"],
+    ["ORG_ORIGIN", "https://org.ores-shared-auth.com"],
+    ["AUTH_ORIGIN", "https://auth.ores-shared-auth.com"],
+    ["API_ORIGIN", "https://api.ores-shared-auth.com"],
+    ["ADMIN_ORIGIN", "https://admin.ores-shared-auth.com"],
+    ["MOBILE_ORIGIN", "https://m.ores-shared-auth.com"],
+  ]) {
+    assert.equal(hosts[name], expected, `${name} drifted from the subdomain contract`);
+  }
+  const docs = readFileSync(new URL("../dist/docs/index.html", import.meta.url), "utf8");
+  assert.ok(docs.includes("api-admin.ores-shared-auth.com"));
+});
+
 test("the marketing surface ships the capability, roadmap, security and docs pages", () => {
   for (const route of ["features", "roadmap", "security", "docs", "login"]) {
     const page = new URL(`../dist/${route}/index.html`, import.meta.url);

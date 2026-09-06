@@ -275,10 +275,28 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     margin: auto;
   }
   header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    isolation: isolate;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1.1rem 0;
+    /* The header sits over content as it scrolls, so it needs a ground of its
+       own. A blur alone leaves text legible only against the lighter parts of
+       the gradient behind it. */
+    background: #eef2ffe8;
+    backdrop-filter: blur(12px);
+  }
+  header::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: #0f172a14;
   }
   .brand {
     font-weight: 900;

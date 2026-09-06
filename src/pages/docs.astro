@@ -21,7 +21,11 @@ const hostnames = [
   [AUTH_ORIGIN, "Identity plane", "Token exchange, introspection, JWKS and factor ceremonies."],
   [API_ORIGIN, "Product API", "The public application programming interface."],
   [ADMIN_ORIGIN, "Super-admin console", "Network-restricted operator console."],
-  [ADMIN_API_ORIGIN, "Admin API", "Network-restricted administrative interface."],
+  [
+    ADMIN_API_ORIGIN,
+    "Admin API",
+    "Network-restricted administrative interface; the admin-api alias resolves here too.",
+  ],
 ];
 
 const repositories = [

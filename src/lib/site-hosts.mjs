@@ -25,8 +25,19 @@ export const ADMIN_ORIGIN = `https://admin.${APEX_DOMAIN}`;
 /** Public product API (shared-auth-api-server.rs). */
 export const API_ORIGIN = `https://api.${APEX_DOMAIN}`;
 
-/** Admin API (shared-auth-admin-api-server.rs), not publicly routable. */
-export const ADMIN_API_ORIGIN = `https://admin-api.${APEX_DOMAIN}`;
+/**
+ * Admin API (shared-auth-admin-api-server.rs), not publicly routable.
+ *
+ * The canonical label is `api-admin`, from the subdomain contract in
+ * ORESoftware/my-ai AGENTS.md, which every organization in the estate follows.
+ * `admin-api` reads more naturally and was used in the original request for
+ * this domain, so it is kept as an alias rather than dropped: both resolve,
+ * one is canonical, and nothing that already learned the other name breaks.
+ */
+export const ADMIN_API_ORIGIN = `https://api-admin.${APEX_DOMAIN}`;
+
+/** Accepted alias for {@link ADMIN_API_ORIGIN}. Not the canonical name. */
+export const ADMIN_API_ALIAS_ORIGIN = `https://admin-api.${APEX_DOMAIN}`;
 
 /** Mobile entry point; redirects to the responsive apex at the edge. */
 export const MOBILE_ORIGIN = `https://m.${APEX_DOMAIN}`;
