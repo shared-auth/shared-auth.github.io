@@ -1,0 +1,96 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+
+const actions = [
+  {
+    label: "PERSONAL",
+    title: "User login",
+    body: "Open the individual account entry with a compact, touch-friendly handoff. Product permissions remain outside the identity boundary.",
+    href: "https://user.ores-shared-auth.com",
+    action: "Continue as a user →",
+  },
+  {
+    label: "ORGANIZATION",
+    title: "Organization login",
+    body: "Enter the organization-scoped flow. Membership, role, and resource authorization are still resolved by the destination product.",
+    href: "https://org.ores-shared-auth.com",
+    action: "Continue to an organization →",
+  },
+  {
+    label: "SECURITY",
+    title: "Review account security",
+    body: "Use the personal entry to manage passkeys, MFA factors, recovery methods, sessions, and trusted devices as those capabilities are promoted.",
+    href: "https://user.ores-shared-auth.com/security",
+    action: "Open security settings →",
+  },
+];
+---
+
+<PublicLaunchShell
+  eyebrow="Mobile entry"
+  title="Shared Auth, sized for the device in your hand."
+  summary="This mobile-first surface keeps user and organization entry points explicit, touch targets generous, and authentication separate from application authorization."
+  host="m.ores-shared-auth.com"
+  status="Credential-free mobile launch surface"
+>
+  <section class="surface mobile-surface">
+    <div class="section-heading">
+      <h2>Choose the account context.</h2>
+      <p>
+        The mobile host is a responsive entry surface, not a second identity
+        authority. It hands off to the same exact user and organization hosts
+        used on desktop and never stores credentials in the static site.
+      </p>
+    </div>
+    <div class="card-grid mobile-grid">
+      {
+        actions.map((action) => (
+          <a class="card" href={action.href}>
+            <small>{action.label}</small>
+            <h3>{action.title}</h3>
+            <p>{action.body}</p>
+            <b>{action.action}</b>
+          </a>
+        ))
+      }
+    </div>
+    <div class="mobile-note" role="note">
+      <strong>Installable-app boundary</strong>
+      <p>
+        A future PWA or Flutter shell may reuse this hostname only after its
+        manifest, service-worker cache policy, deep-link allowlist, and session
+        handling pass the same fail-closed origin tests as the web surfaces.
+      </p>
+    </div>
+  </section>
+</PublicLaunchShell>
+
+<style>
+  .mobile-surface {
+    max-width: 58rem;
+    margin-inline: auto;
+  }
+
+  .mobile-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mobile-note {
+    margin-top: 1rem;
+    padding: 1.2rem;
+    border: 1px solid rgba(151, 178, 215, 0.2);
+    border-radius: 1rem;
+    background: rgba(10, 26, 45, 0.78);
+  }
+
+  .mobile-note p {
+    margin: 0.45rem 0 0;
+    color: #9fb0c8;
+  }
+
+  @media (max-width: 760px) {
+    .mobile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
