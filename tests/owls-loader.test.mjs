@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const expectedInterfaces = '231510f5d01046af657be42a5d4215be12622042';
 const expectedLoader = 'deae23537d27aed94bdc2510649f99393379a617';
@@ -12,9 +13,10 @@ async function source(path) {
 }
 
 async function filesBelow(directory) {
+  const directoryPath = typeof directory === 'string' ? directory : fileURLToPath(directory);
   const results = [];
-  for (const entry of await readdir(directory, { withFileTypes: true })) {
-    const path = join(directory, entry.name);
+  for (const entry of await readdir(directoryPath, { withFileTypes: true })) {
+    const path = join(directoryPath, entry.name);
     if (entry.isDirectory()) results.push(...await filesBelow(path));
     else results.push(path);
   }
