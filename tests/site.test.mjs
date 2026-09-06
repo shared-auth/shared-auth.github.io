@@ -24,13 +24,71 @@ test("landing page exposes assurance, polyglot clients, and a dashboard CTA", ()
   }
   const dashboardLinks = html.match(/<a\b[^>]*href="\/dashboard\/"[^>]*>/g) ?? [];
   assert.ok(dashboardLinks.length >= 2, "homepage must expose dashboard links in both the navigation and hero");
-  assert.match(html, /<nav>.*<a class="nav-dashboard" href="\/dashboard\/">Dashboard<\/a><\/nav>/);
+  assert.match(html, /<nav>[\s\S]*<a class="nav-dashboard" href="\/dashboard\/">Dashboard<\/a><\/nav>/);
   assert.match(html, /<div class="actions"><a class="dashboard-cta" href="\/dashboard\/"/);
   assert.ok(
     html.includes('aria-label="Open the Shared Auth dashboard handoff"'),
     "hero dashboard CTA must retain its accessible label",
   );
   assert.ok(!html.includes("undefined"));
+});
+
+test("the header offers both user and organization login entry points", () => {
+  const html = readFileSync(built, "utf8");
+  assert.ok(html.includes('href="https://user.ores-shared-auth.com/sign-in/"'), "missing user login link");
+  assert.ok(html.includes('href="https://org.ores-shared-auth.com/sign-in/"'), "missing org login link");
+  assert.ok(html.includes(">User login<"), "missing user login label");
+  assert.ok(html.includes(">Org login<"), "missing org login label");
+  // The login entry points must precede the dashboard handoff in the header,
+  // and the dashboard link must remain the final navigation item.
+  const nav = html.match(/<nav>[\s\S]*?<\/nav>/)?.[0] ?? "";
+  assert.ok(nav.includes("User login") && nav.includes("Org login"), "login links must live in the header nav");
+  assert.ok(nav.indexOf("nav-login") < nav.indexOf("nav-dashboard"));
+  // Sign-in surfaces are cross-origin; they must never be same-origin paths.
+  assert.ok(!html.includes('href="/sign-in/"'));
+});
+
+test("the custom apex domain is bound and the site canonicalises to it", () => {
+  const cname = readFileSync(new URL("../public/CNAME", import.meta.url), "utf8").trim();
+  assert.equal(cname, "ores-shared-auth.com");
+  assert.ok(existsSync(new URL("../dist/CNAME", import.meta.url)), "CNAME must reach the artifact");
+  const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
+  assert.ok(config.includes('site: "https://ores-shared-auth.com"'));
+  const robots = readFileSync(new URL("../dist/robots.txt", import.meta.url), "utf8");
+  assert.ok(robots.includes("Disallow: /dashboard/"), "the dashboard handoff must stay out of the index");
+});
+
+test("the marketing surface ships the capability, roadmap, security and docs pages", () => {
+  for (const route of ["features", "roadmap", "security", "docs", "login"]) {
+    const page = new URL(`../dist/${route}/index.html`, import.meta.url);
+    assert.ok(existsSync(page), `missing /${route}/`);
+    const html = readFileSync(page, "utf8");
+    assert.ok(!html.includes("undefined"), `/${route}/ rendered undefined`);
+    assert.ok(html.includes("Shared Auth"));
+    assert.ok(html.includes('class="nav-login"'), `/${route}/ lost the login entry points`);
+  }
+});
+
+test("the capability register never claims a status it cannot back", async () => {
+  const register = await import("../src/lib/capabilities.mjs");
+  const ids = register.ALL_CAPABILITIES.map((capability) => capability.id);
+  assert.equal(new Set(ids).size, ids.length, "capability ids must be unique");
+  const milestones = new Set(register.MILESTONES.map((milestone) => milestone.id));
+  for (const capability of register.ALL_CAPABILITIES) {
+    assert.ok(register.STATUS[capability.status], `unknown status on ${capability.id}`);
+    assert.ok(register.TIERS[capability.tier], `unknown tier on ${capability.id}`);
+    assert.ok(capability.note.length > 0, `${capability.id} needs a note`);
+    if (capability.status === "partial" || capability.status === "planned") {
+      assert.ok(milestones.has(capability.milestone), `${capability.id} must name a milestone`);
+    }
+    if (capability.status === "shipped" || capability.status === "none") {
+      assert.equal(capability.milestone, undefined, `${capability.id} must not name a milestone`);
+    }
+  }
+  const html = readFileSync(new URL("../dist/features/index.html", import.meta.url), "utf8");
+  for (const capability of register.ALL_CAPABILITIES) {
+    assert.ok(html.includes(capability.title), `features page omits ${capability.id}`);
+  }
 });
 
 test("dashboard handoff documents fail-closed directory guardrails", () => {

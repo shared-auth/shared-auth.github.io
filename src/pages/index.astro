@@ -1,6 +1,11 @@
 ---
 import ClientShowcase from "../components/ClientShowcase.astro";
 import DashboardCta from "../components/DashboardCta.astro";
+import {
+  LOGIN_ENTRY_POINTS,
+  GITHUB_ORG,
+} from "../lib/site-hosts.mjs";
+const [userLogin, orgLogin] = LOGIN_ENTRY_POINTS;
 const features = [
   [
     "Protected introspection",
@@ -109,8 +114,19 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
   ><body>
     <header>
       <a class="brand" href="/"><b>A</b> Shared Auth</a><nav>
-        <a href="#platform">Platform</a><a href="#clients">Clients</a><a
-          href="https://github.com/shared-auth">GitHub ↗</a
+        <a class="nav-section" href="#platform">Platform</a><a
+          class="nav-section"
+          href="#clients">Clients</a
+        ><a class="nav-section" href="/features/">Features</a><a
+          class="nav-section"
+          href="/roadmap/">Roadmap</a
+        ><a class="nav-section" href="/security/">Security</a><a
+          class="nav-section"
+          href={GITHUB_ORG}>GitHub ↗</a
+        ><a class="nav-login" href={userLogin.href} data-login="user"
+          >{userLogin.label}</a
+        ><a class="nav-login nav-login-org" href={orgLogin.href} data-login="org"
+          >{orgLogin.label}</a
         ><a class="nav-dashboard" href="/dashboard/">Dashboard</a>
       </nav>
     </header>
@@ -124,8 +140,9 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
             enrollment, OTP challenges, and WebAuthn ceremonies while keeping
             service credentials and end-user tokens in separate lanes.
           </p><div class="actions">
-            <DashboardCta /><a href="https://github.com/shared-auth"
-              >Explore the identity plane ↗</a
+            <DashboardCta /><a class="hero-login" href={userLogin.href}
+              >{userLogin.label} →</a
+            ><a class="hero-login" href={orgLogin.href}>{orgLogin.label} →</a
             ><a href="#clients">See client code</a>
           </div><ul>
             <li>Protected introspection</li><li>
@@ -215,9 +232,12 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
           >Open the organization ↗</a>
       </section>
     </main><footer>
-      <span>© 2026 Shared Auth</span><a
+      <span>© 2026 Shared Auth</span><a href="/features/">Features</a><a
+        href="/security/">Security</a
+      ><a href="/roadmap/">Roadmap</a><a href="/docs/">Docs</a><a
         href="https://github.com/shared-auth/shared-auth-clients"
-        >Client packages</a>
+        >Client packages</a
+      >
     </footer></body>
 </html>
 <style is:global>
@@ -289,6 +309,19 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     border-radius: 0.65rem;
     background: var(--ink);
     color: white;
+  }
+  .nav-login {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid #0f172a24;
+    border-radius: 0.65rem;
+    background: #ffffffcc;
+  }
+  .nav-login-org {
+    border-color: #6d5dfc55;
+    color: var(--accent);
+  }
+  .hero-login {
+    background: #ffffffcc;
   }
   .hero {
     display: grid;
@@ -596,9 +629,18 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
       grid-column: 1;
     }
   }
-  @media (max-width: 650px) {
-    nav a:not(:last-child) {
+  @media (max-width: 1040px) {
+    nav {
+      gap: 0.7rem;
+    }
+    nav .nav-section {
       display: none;
+    }
+  }
+  @media (max-width: 650px) {
+    nav {
+      gap: 0.5rem;
+      font-size: 0.78rem;
     }
     .visual {
       min-height: 27rem;
