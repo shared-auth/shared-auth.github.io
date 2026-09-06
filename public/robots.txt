@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+
+# The dashboard is an authenticated handoff and the operator console is not a
+# public surface. Neither should appear in a search result.
 Disallow: /dashboard/
+Disallow: /admin/
 
 Sitemap: https://ores-shared-auth.com/sitemap.xml

@@ -1,0 +1,42 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+---
+
+<PublicLaunchShell
+  eyebrow="Individual account"
+  title="Sign in as one person, not as an organization."
+  summary="This entry point is for personal Shared Auth sessions. Product roles, subscriptions, resources, and tenant membership remain decisions of the application you enter after authentication."
+  host="user.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Personal identity lane.</h2>
+      <p>
+        Shared Auth can prove identity and assurance. It does not infer access
+        from an email domain, provider profile, GitHub organization, or another
+        unverified attribute.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>Before continuing</h2>
+        <ul>
+          <li>Use the exact authentication hostname shown below.</li>
+          <li>Never paste a password, token, cookie, private key, or OTP into a support form.</li>
+          <li>Confirm the destination application before completing a sign-in ceremony.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Authentication gateway</h2>
+        <p>
+          The gateway owns the sign-in ceremony. This static entry page neither
+          receives nor stores credentials, and it sets no session cookie.
+        </p>
+        <div class="action-row">
+          <a class="button" href="https://auth.ores-shared-auth.com">Open Shared Auth</a>
+          <a class="button secondary" href="https://app.ores-shared-auth.com">Choose another entry</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>

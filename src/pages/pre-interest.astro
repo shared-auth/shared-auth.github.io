@@ -1,0 +1,138 @@
+---
+import PublicLaunchShell from "../components/PublicLaunchShell.astro";
+import SafeIntakeForm from "../components/SafeIntakeForm.astro";
+import {
+  TURNSTILE_ACTIONS,
+  normalizeTurnstileSiteKey,
+  publicIntakeConfig,
+} from "../lib/public-intake.mjs";
+
+const { preInterest: endpoint } = publicIntakeConfig();
+const turnstileSiteKey = normalizeTurnstileSiteKey(
+  import.meta.env.PUBLIC_TURNSTILE_SITE_KEY,
+);
+---
+
+<PublicLaunchShell
+  eyebrow="Pre-interest registration"
+  title="Register interest without creating an account prematurely."
+  summary="Tell Shared Auth which launch surface matters to you. Registration is informational only: it creates no user, organization, subscription, quote, role, session, entitlement, or authorization grant."
+  host="pre-interest.ores-shared-auth.com"
+>
+  <section class="surface">
+    <div class="section-heading">
+      <h2>Early signal, no implicit entitlement.</h2>
+      <p>
+        A pre-interest record helps plan capacity and integration priorities.
+        Access still requires a separate verified invitation, authentication
+        ceremony, and product-local authorization decision.
+      </p>
+    </div>
+    <div class="form-layout">
+      <aside class="notice">
+        <h2>What registration does</h2>
+        <ul>
+          <li>Records a bounded contact and use-case signal.</li>
+          <li>Does not reserve a hostname, organization, role, or price.</li>
+          <li>Does not enroll a factor or create a Shared Auth session.</li>
+          <li>Keeps launch marketing consent separate and optional.</li>
+        </ul>
+      </aside>
+      <article class="form-panel">
+        <h2>Pre-interest form</h2>
+        <p>
+          Submission is pinned to
+          <code>api.ores-shared-auth.com/v1/pre-interest-registrations</code>.
+          The API must verify the exact source host, Turnstile action, consent
+          revision, idempotency key, and closed schema before storing approved
+          fields.
+        </p>
+        <SafeIntakeForm
+          kind="preInterest"
+          endpoint={endpoint}
+          submitLabel="Register pre-interest"
+          unavailableMessage="Pre-interest submission is unavailable. This page has not sent or stored your information."
+          consentText="I consent to Shared Auth storing and reviewing this registration and contacting me only about this request."
+          turnstileSiteKey={turnstileSiteKey}
+          turnstileAction={TURNSTILE_ACTIONS.preInterest}
+        >
+          <div class="field-grid">
+            <label>
+              Contact name
+              <input name="name" autocomplete="name" maxlength="120" />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" autocomplete="email" maxlength="254" required />
+            </label>
+            <label>
+              Interest type
+              <select name="party_type" required>
+                <option value="">Select one</option>
+                <option value="individual">Individual / developer</option>
+                <option value="organization">Organization</option>
+                <option value="platform">Platform / application operator</option>
+                <option value="partner">Integration partner</option>
+              </select>
+            </label>
+            <label>
+              Organization
+              <input name="organization_name" autocomplete="organization" maxlength="160" />
+            </label>
+            <label>
+              Primary interest
+              <select name="primary_interest" required>
+                <option value="">Select one</option>
+                <option value="hosted_auth">Hosted authentication</option>
+                <option value="organization_sso">Organization SSO</option>
+                <option value="mfa_passkeys_3fa">MFA, passkeys, or 3FA</option>
+                <option value="sdk_integration">Client SDK integration</option>
+                <option value="admin_revocation">Admin and revocation controls</option>
+                <option value="self_hosted">Self-hosted deployment</option>
+              </select>
+            </label>
+            <label>
+              Expected launch
+              <select name="expected_launch" required>
+                <option value="now">As soon as available</option>
+                <option value="quarter">Within three months</option>
+                <option value="six_months">Within six months</option>
+                <option value="later">Later than six months</option>
+                <option value="exploring">Exploring / no date</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            Use case
+            <textarea
+              name="use_case"
+              minlength="20"
+              maxlength="2400"
+              required
+              placeholder="Applications, users, organizations, identity providers, assurance needs, client runtimes, and migration context…"
+            ></textarea>
+          </label>
+          <label class="consent">
+            <input type="checkbox" name="marketing_consent" value="yes" />
+            <span>
+              I separately consent to receiving Shared Auth launch and
+              integration updates. This is optional and is not required for a
+              response to this registration.
+            </span>
+          </label>
+        </SafeIntakeForm>
+      </article>
+    </div>
+  </section>
+</PublicLaunchShell>
+
+{
+  turnstileSiteKey && (
+    <script
+      is:inline
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+      async
+      defer
+    ></script>
+  )
+}

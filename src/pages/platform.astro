@@ -1,0 +1,344 @@
+---
+import {
+  capabilityStatuses,
+  platformContract,
+} from "../lib/platform-contract.mjs";
+
+const statusOrder = ["available", "partial", "in_review", "planned", "blocked"];
+const statusClass = (status) => `status status-${status.replace("_", "-")}`;
+const statusCounts = Object.fromEntries(
+  statusOrder.map((status) => [
+    status,
+    platformContract.capabilities.filter((capability) => capability.status === status).length,
+  ]),
+);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Evidence-based Shared Auth IAM and CIAM capabilities, exact host routing, and Cloud Run plus Kubernetes delivery gates."
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="theme-color" content="#07111f" />
+    <link rel="canonical" href="https://ores-shared-auth.com/platform/" />
+    <title>IAM/CIAM delivery ledger · Shared Auth</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Shared Auth home"><b>A</b> Shared Auth</a>
+      <nav aria-label="Platform navigation">
+        <a href="#capabilities">Capabilities</a>
+        <a href="#runtime">Runtime</a>
+        <a href="#hosts">Hosts</a>
+        <a href="/capabilities.json">JSON contract</a>
+        <a class="login" href="https://user.ores-shared-auth.com">User login</a>
+        <a class="login org" href="https://org.ores-shared-auth.com">Org login</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">{platformContract.contract} · {platformContract.asOf}</p>
+          <h1>Build broad IAM. <em>Claim only what is proven.</em></h1>
+          <p class="lede">
+            Shared Auth is becoming a first-party IAM and CIAM control plane for
+            hosted authentication, account security, organizations, enterprise
+            federation, directory lifecycle, policy, audit, and resilient
+            deployment. This ledger separates merged evidence, bounded
+            primitives, work in review, roadmap targets, and blocked prerequisites.
+          </p>
+          <div class="actions">
+            <a class="primary" href="#capabilities">Inspect capabilities</a>
+            <a href="/capabilities.json">Read the machine contract</a>
+          </div>
+        </div>
+        <aside aria-label="Capability status summary">
+          <p>Delivery record</p>
+          <strong>{platformContract.issue}</strong>
+          <dl>
+            {
+              statusOrder.map((status) => (
+                <div>
+                  <dt><span class={statusClass(status)}>{status.replace("_", " ")}</span></dt>
+                  <dd>{statusCounts[status]}</dd>
+                </div>
+              ))
+            }
+          </dl>
+          <small>Canonical marketing: {platformContract.canonicalMarketingHost}</small>
+        </aside>
+      </section>
+
+      <section class="evidence-policy" aria-label="Evidence policy">
+        <h2>Evidence policy</h2>
+        <p>{platformContract.disclaimer}</p>
+      </section>
+
+      <section id="capabilities">
+        <div class="section-heading">
+          <p class="eyebrow">IAM/CIAM delivery ledger</p>
+          <h2>UI and backend authority land together.</h2>
+          <p>
+            A visible control is not supported until its independent TypeSpec and
+            JSON Schema authorities, persistence, authorization, replay protection,
+            audit, tests, deployment evidence, and failure-state UX agree.
+          </p>
+        </div>
+
+        <div class="legend" aria-label="Status definitions">
+          {
+            statusOrder.map((status) => (
+              <article>
+                <span class={statusClass(status)}>{status.replace("_", " ")}</span>
+                <p>{capabilityStatuses[status]}</p>
+              </article>
+            ))
+          }
+        </div>
+
+        <div class="capabilities">
+          {
+            platformContract.capabilities.map((capability, index) => (
+              <article id={capability.id}>
+                <div class="card-heading">
+                  <small>{String(index + 1).padStart(2, "0")}</small>
+                  <span class={statusClass(capability.status)}>
+                    {capability.status.replace("_", " ")}
+                  </span>
+                </div>
+                <h3>{capability.domain}</h3>
+                <p>{capability.userSurface}</p>
+                <h4>Repository evidence</h4>
+                {capability.backendEvidence.length ? (
+                  <ul>
+                    {capability.backendEvidence.map((evidence) => <li><code>{evidence}</code></li>)}
+                  </ul>
+                ) : (
+                  <p class="none">No implementation is claimed.</p>
+                )}
+                <h4>Next fail-closed gate</h4>
+                <p class="gate">{capability.nextGate}</p>
+              </article>
+            ))
+          }
+        </div>
+      </section>
+
+      <section id="runtime">
+        <div class="section-heading">
+          <p class="eyebrow">Multi-cloud runtime</p>
+          <h2>Cloudflare exact-host router. Four isolated services.</h2>
+          <p>
+            Google Cloud Run is the intended primary runtime and
+            <code>ORESoftware/k8s-cluster</code> is the intended fallback. Customer
+            and administrator identities, service accounts, secrets, database
+            roles, and origins stay separate. Safe reads may fail over; writes are
+            never replayed after an origin may have received them.
+          </p>
+        </div>
+
+        <div class="architecture" aria-label="Target runtime architecture">
+          <article class="edge">
+            <small>PUBLIC EDGE</small>
+            <strong>Cloudflare exact-host router</strong>
+            <span>DNS · TLS · request policy · bounded health-aware origin selection</span>
+          </article>
+          <b aria-hidden="true">↓</b>
+          <div class="origins">
+            <article>
+              <small>PRIMARY</small>
+              <strong>Google Cloud Run</strong>
+              <span>four service identities · immutable digest promotion</span>
+            </article>
+            <article>
+              <small>FALLBACK</small>
+              <strong>ORESoftware/k8s-cluster</strong>
+              <span>four direct Argo CD applications · namespace isolation</span>
+            </article>
+          </div>
+          <b aria-hidden="true">↓</b>
+          <div class="services">
+            <span>customer web</span>
+            <span>customer API</span>
+            <span>admin web</span>
+            <span>admin API</span>
+          </div>
+        </div>
+
+        <article class="origin-note">
+          <h3>Static marketing origin</h3>
+          <p>
+            <code>{platformContract.marketingOrigin.host}</code> remains the
+            credential-free GitHub Pages origin and review URL. Cloudflare owns the
+            canonical apex and mobile public hosts and may proxy only safe static
+            methods to that artifact.
+          </p>
+        </article>
+      </section>
+
+      <section id="hosts">
+        <div class="section-heading">
+          <p class="eyebrow">Exact authority contract</p>
+          <h2>Twelve hosts. No wildcard fallback.</h2>
+          <p>
+            Unknown authorities fail before origin traffic. The apex and mobile
+            host are static-only; only <code>auth</code> can inherit the legacy
+            authentication pool. Both admin API spellings reach one authority
+            directly so mutations are never redirected and replayed.
+          </p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption>Canonical <code>ores-shared-auth.com</code> host contract</caption>
+            <thead>
+              <tr>
+                <th scope="col">Host</th>
+                <th scope="col">Purpose</th>
+                <th scope="col">Service / pool</th>
+                <th scope="col">Static</th>
+                <th scope="col">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {
+                platformContract.hostContract.map((route) => (
+                  <tr>
+                    <th scope="row"><code>{route.host}</code></th>
+                    <td>{route.purpose}</td>
+                    <td><code>{route.service}</code> / <code>{route.originPool ?? "static"}</code></td>
+                    <td>{route.staticOnly ? "yes" : "no"}</td>
+                    <td><span class={statusClass(route.certification)}>{route.certification.replace("_", " ")}</span></td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <article class="activation-gate">
+          <h3>Production activation gate</h3>
+          <p>
+            DNS records, Worker Custom Domains, certificates, Cloud Run revisions,
+            Kubernetes workloads, private-origin admission, health failover, and
+            rollback become active only after read-after-write evidence from the
+            actual Cloudflare, Google Cloud, and Kubernetes control planes.
+            Repository code alone does not satisfy this gate.
+          </p>
+        </article>
+      </section>
+
+      <section id="references">
+        <div class="section-heading">
+          <p class="eyebrow">Feature taxonomy inputs</p>
+          <h2>Learn broadly. Copy nothing blindly.</h2>
+          <p>
+            These products inform feature discovery. Shared Auth keeps its own
+            contracts, implementation, product language, security boundaries, and
+            evidence thresholds; inclusion here is not a compatibility claim.
+          </p>
+        </div>
+        <div class="references">
+          {
+            platformContract.taxonomyReferences.map((reference) => (
+              <a href={reference.url} rel="noreferrer noopener">
+                {reference.name}<span aria-hidden="true">↗</span>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2026 Shared Auth</span>
+      <span>Astro on GitHub Pages · no Jekyll · no Hugo</span>
+      <a href="/capabilities.json">Capability contract</a>
+    </footer>
+  </body>
+</html>
+
+<style>
+  :root { --ink:#07111f; --muted:#58687d; --paper:#f4f7ff; --line:#d8e1ee; --accent:#6557f5; --hot:#0284c7; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:6rem; }
+  body { margin:0; background:radial-gradient(circle at 90% 0%,#c7ebff 0,transparent 28rem),var(--paper); color:var(--ink); font:16px/1.6 Inter,ui-sans-serif,system-ui,sans-serif; }
+  a { color:inherit; }
+  .site-header, main, footer { width:min(1180px,calc(100% - 2rem)); margin:auto; }
+  .site-header { position:sticky; top:.6rem; z-index:10; display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:.6rem; padding:.75rem; border:1px solid #ffffffb8; border-radius:1rem; background:#f7f9ffeb; box-shadow:0 14px 42px #0f172a12; backdrop-filter:blur(16px); }
+  .brand { font-weight:900; text-decoration:none; white-space:nowrap; }
+  .brand b { display:inline-grid; width:2.2rem; aspect-ratio:1; place-items:center; margin-right:.5rem; border-radius:.7rem; background:var(--ink); color:white; }
+  nav { display:flex; align-items:center; justify-content:flex-end; gap:.75rem; flex-wrap:wrap; font-size:.8rem; font-weight:750; }
+  nav a { text-decoration:none; }
+  nav a:hover, nav a:focus-visible { text-decoration:underline; text-underline-offset:.25rem; }
+  nav .login { padding:.45rem .65rem; border:1px solid var(--line); border-radius:.65rem; background:white; }
+  nav .org { border-color:var(--ink); background:var(--ink); color:white; }
+  .hero { display:grid; grid-template-columns:1.15fr .85fr; gap:clamp(2rem,7vw,6rem); align-items:center; min-height:42rem; padding:5rem 0; }
+  .eyebrow { margin:0; color:var(--accent); font:800 .72rem/1 ui-monospace,monospace; letter-spacing:.16em; text-transform:uppercase; }
+  h1 { max-width:13ch; margin:.8rem 0 1.3rem; font-size:clamp(3.3rem,8vw,6.8rem); line-height:.9; letter-spacing:-.07em; }
+  h1 em { background:linear-gradient(120deg,var(--accent),var(--hot)); background-clip:text; color:transparent; font-style:normal; }
+  .lede, .section-heading > p:not(.eyebrow) { max-width:48rem; color:var(--muted); font-size:1.08rem; }
+  .actions { display:flex; gap:.75rem; flex-wrap:wrap; margin-top:2rem; }
+  .actions a { padding:.72rem 1rem; border:1px solid #0f172a20; border-radius:.75rem; background:white; font-weight:800; text-decoration:none; }
+  .actions .primary { background:var(--ink); color:white; }
+  .hero aside { padding:1.5rem; border-radius:1.4rem; background:var(--ink); color:white; box-shadow:0 28px 70px #0f172a35; }
+  .hero aside > p, .hero aside > small { color:#afbdd0; }
+  .hero aside > strong { font-size:2rem; }
+  dl { display:grid; gap:.65rem; margin:1.5rem 0; }
+  dl div { display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+  dd { margin:0; font-weight:900; }
+  .status { display:inline-block; padding:.22rem .6rem; border-radius:999px; font-size:.7rem; font-weight:850; letter-spacing:.04em; text-transform:uppercase; }
+  .status-available { background:#d7f7e8; color:#126545; }
+  .status-partial { background:#fff1b9; color:#735600; }
+  .status-in-review { background:#dcecff; color:#165b95; }
+  .status-planned { background:#e9e5ff; color:#5441a8; }
+  .status-blocked { background:#ffe0e4; color:#9b2938; }
+  .evidence-policy, .origin-note, .activation-gate { padding:1.2rem 1.4rem; border:1px solid var(--line); border-left:.35rem solid var(--accent); border-radius:.8rem; background:white; }
+  .evidence-policy { margin-bottom:4rem; }
+  .evidence-policy h2, .evidence-policy p, .origin-note h3, .origin-note p, .activation-gate h3, .activation-gate p { margin-block:.25rem; }
+  section[id] { padding:5rem 0; }
+  .section-heading h2 { max-width:18ch; margin:.8rem 0 1rem; font-size:clamp(2.4rem,5vw,4.5rem); line-height:.98; letter-spacing:-.055em; }
+  .legend, .capabilities, .origins, .services, .references { display:grid; gap:1rem; }
+  .legend { grid-template-columns:repeat(5,minmax(0,1fr)); margin:2rem 0; }
+  .legend article, .capabilities article { padding:1rem; border:1px solid var(--line); border-radius:1rem; background:white; }
+  .legend p { margin:.7rem 0 0; color:var(--muted); font-size:.82rem; }
+  .capabilities { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .card-heading { display:flex; justify-content:space-between; align-items:center; gap:.8rem; }
+  .card-heading small { color:var(--muted); font-family:ui-monospace,monospace; }
+  h3 { margin:1rem 0 .6rem; font-size:1.25rem; line-height:1.2; }
+  h4 { margin:1.15rem 0 .35rem; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; }
+  .capabilities p, .capabilities li { color:var(--muted); font-size:.9rem; }
+  .capabilities ul { margin:.4rem 0 0; padding-left:1.2rem; }
+  .capabilities code, table code, .section-heading code, .origin-note code { font-family:ui-monospace,monospace; }
+  .capabilities .gate { color:var(--ink); }
+  .none { font-style:italic; }
+  .architecture { display:grid; justify-items:center; gap:1rem; margin:2.5rem 0; padding:clamp(1rem,4vw,2.5rem); border-radius:1.5rem; background:var(--ink); color:white; }
+  .architecture article { display:grid; gap:.35rem; padding:1rem; border:1px solid #ffffff22; border-radius:.9rem; background:#ffffff0b; }
+  .architecture small { color:#a5b4fc; font:700 .66rem/1 ui-monospace,monospace; letter-spacing:.08em; }
+  .architecture span { color:#afbdd0; font-size:.8rem; }
+  .edge { width:min(30rem,100%); text-align:center; }
+  .origins { width:100%; grid-template-columns:1fr 1fr; }
+  .services { width:100%; grid-template-columns:repeat(4,1fr); }
+  .services span { padding:.7rem; border:1px solid #ffffff22; border-radius:.7rem; text-align:center; }
+  .origin-note { margin-top:1rem; }
+  .table-wrap { overflow-x:auto; margin:2rem 0; border:1px solid var(--line); border-radius:1rem; background:white; }
+  table { width:100%; border-collapse:collapse; min-width:62rem; }
+  caption { padding:1rem; text-align:left; font-weight:850; }
+  th, td { padding:.8rem 1rem; border-top:1px solid var(--line); text-align:left; vertical-align:top; }
+  thead th { color:var(--muted); font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; }
+  tbody th { font-weight:750; }
+  .activation-gate { border-left-color:#dc2626; }
+  .references { grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .references a { display:flex; justify-content:space-between; gap:1rem; padding:.9rem; border:1px solid var(--line); border-radius:.8rem; background:white; font-weight:750; text-decoration:none; }
+  .references a:hover, .references a:focus-visible { border-color:var(--accent); }
+  footer { display:flex; gap:1rem; flex-wrap:wrap; padding:3rem 0; color:var(--muted); font-size:.8rem; }
+  footer a { margin-left:auto; }
+  @media (max-width:900px) { .hero { grid-template-columns:1fr; } .legend { grid-template-columns:1fr 1fr; } .capabilities { grid-template-columns:1fr 1fr; } .references { grid-template-columns:1fr 1fr; } }
+  @media (max-width:680px) { .site-header { align-items:flex-start; } .brand { font-size:0; } .brand b { margin:0; font-size:1rem; } nav > a:not(.login) { display:none; } nav .login { flex:1; text-align:center; } .hero { min-height:auto; padding-top:4rem; } h1 { font-size:3.2rem; } .legend, .capabilities, .origins, .services, .references { grid-template-columns:1fr; } footer a { margin-left:0; } }
+  @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } }
+</style>

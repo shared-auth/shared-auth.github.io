@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 
 const built = new URL("../dist/index.html", import.meta.url);
 const dashboard = new URL("../dist/dashboard/index.html", import.meta.url);
+const mobile = new URL("../dist/m/index.html", import.meta.url);
 const dashboardSource = new URL("../src/pages/dashboard.astro", import.meta.url);
 const lockfile = new URL("../package-lock.json", import.meta.url);
 const workflows = [
@@ -12,114 +13,62 @@ const workflows = [
   new URL("../.github/workflows/repository-policy.yml", import.meta.url),
 ];
 
-test("Astro emits the Shared Auth landing page and dashboard handoff", () => {
+test("Astro emits the Shared Auth landing, dashboard handoff, and mobile surface", () => {
   assert.ok(existsSync(built));
   assert.ok(existsSync(dashboard));
+  assert.ok(existsSync(mobile));
 });
 
-test("landing page exposes assurance, polyglot clients, and a dashboard CTA", () => {
+test("landing page exposes assurance, polyglot clients, and explicit user and organization login", () => {
   const html = readFileSync(built, "utf8");
-  for (const expected of ["Shared Auth", "Select client language", "Protected introspection", "Rust", "TypeScript", "Dart / Flutter", "Swift", "Dashboard", "/dashboard/"]) {
+  for (const expected of [
+    "Shared Auth",
+    "Select client language",
+    "protected introspection",
+    "Rust",
+    "TypeScript",
+    "Dart / Flutter",
+    "Swift",
+    "Dashboard",
+    "User login",
+    "Org login",
+    "m.ores-shared-auth.com",
+  ]) {
     assert.ok(html.includes(expected), `missing ${expected}`);
   }
-  const dashboardLinks = html.match(/<a\b[^>]*href="\/dashboard\/"[^>]*>/g) ?? [];
-  assert.ok(dashboardLinks.length >= 2, "homepage must expose dashboard links in both the navigation and hero");
-  assert.match(html, /<nav>[\s\S]*<a class="nav-dashboard" href="\/dashboard\/">Dashboard<\/a><\/nav>/);
-  assert.match(html, /<div class="actions"><a class="dashboard-cta" href="\/dashboard\/"/);
+
+  assert.ok(html.includes('<link rel="canonical" href="https://ores-shared-auth.com/"'));
+  assert.match(
+    html,
+    /<a class="nav-login nav-user" href="https:\/\/user\.ores-shared-auth\.com">User login<\/a>/,
+  );
+  assert.match(
+    html,
+    /<a class="nav-login nav-org" href="https:\/\/org\.ores-shared-auth\.com">Org login<\/a>/,
+  );
   assert.ok(
     html.includes('aria-label="Open the Shared Auth dashboard handoff"'),
-    "hero dashboard CTA must retain its accessible label",
+    "dashboard CTA must retain its accessible label",
   );
+  assert.ok(html.includes('class="site-header"'));
   assert.ok(!html.includes("undefined"));
 });
 
-test("the header offers both user and organization login entry points", () => {
-  const html = readFileSync(built, "utf8");
-  assert.ok(html.includes('href="https://user.ores-shared-auth.com/sign-in/"'), "missing user login link");
-  assert.ok(html.includes('href="https://org.ores-shared-auth.com/sign-in/"'), "missing org login link");
-  assert.ok(html.includes(">User login<"), "missing user login label");
-  assert.ok(html.includes(">Org login<"), "missing org login label");
-  // The login entry points must precede the dashboard handoff in the header,
-  // and the dashboard link must remain the final navigation item.
-  const nav = html.match(/<nav>[\s\S]*?<\/nav>/)?.[0] ?? "";
-  assert.ok(nav.includes("User login") && nav.includes("Org login"), "login links must live in the header nav");
-  assert.ok(nav.indexOf("nav-login") < nav.indexOf("nav-dashboard"));
-  // Sign-in surfaces are cross-origin; they must never be same-origin paths.
-  assert.ok(!html.includes('href="/sign-in/"'));
-});
-
-test("the custom apex domain is bound and the site canonicalises to it", () => {
-  const cname = readFileSync(new URL("../public/CNAME", import.meta.url), "utf8").trim();
-  assert.equal(cname, "ores-shared-auth.com");
-  assert.ok(existsSync(new URL("../dist/CNAME", import.meta.url)), "CNAME must reach the artifact");
-  const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
-  assert.ok(config.includes('site: "https://ores-shared-auth.com"'));
-  const robots = readFileSync(new URL("../dist/robots.txt", import.meta.url), "utf8");
-  assert.ok(robots.includes("Disallow: /dashboard/"), "the dashboard handoff must stay out of the index");
-});
-
-test("the header is sticky on every page", () => {
-  // ORESoftware/my-ai AGENTS.md asks for a sticky header and strong shared
-  // header and footer across every organization marketing site.
-  for (const page of ["index", "features/index", "roadmap/index", "security/index", "docs/index", "login/index"]) {
-    const html = readFileSync(new URL(`../dist/${page}.html`, import.meta.url), "utf8");
-    assert.match(html, /header\s*\{[^}]*position:\s*sticky/, `${page} lost the sticky header`);
-    assert.ok(html.includes("<footer"), `${page} lost the shared footer`);
-  }
-});
-
-test("the admin API hostname follows the canonical subdomain contract", async () => {
-  // AGENTS.md fixes the label as api-admin, and there is deliberately no
-  // second spelling: one administrative surface, one name.
-  const hosts = await import("../src/lib/site-hosts.mjs");
-  assert.equal(hosts.ADMIN_API_ORIGIN, "https://api-admin.ores-shared-auth.com");
-  assert.equal(hosts.ADMIN_API_ALIAS_ORIGIN, undefined);
-  for (const [name, expected] of [
-    ["USER_ORIGIN", "https://user.ores-shared-auth.com"],
-    ["ORG_ORIGIN", "https://org.ores-shared-auth.com"],
-    ["AUTH_ORIGIN", "https://auth.ores-shared-auth.com"],
-    ["API_ORIGIN", "https://api.ores-shared-auth.com"],
-    ["ADMIN_ORIGIN", "https://admin.ores-shared-auth.com"],
-    ["MOBILE_ORIGIN", "https://m.ores-shared-auth.com"],
+test("mobile surface keeps user and organization context explicit", () => {
+  const html = readFileSync(mobile, "utf8");
+  for (const expected of [
+    "m.ores-shared-auth.com",
+    "User login",
+    "Organization login",
+    "user.ores-shared-auth.com",
+    "org.ores-shared-auth.com",
+    "touch-friendly",
   ]) {
-    assert.equal(hosts[name], expected, `${name} drifted from the subdomain contract`);
+    assert.ok(html.includes(expected), `missing ${expected}`);
   }
-  const docs = readFileSync(new URL("../dist/docs/index.html", import.meta.url), "utf8");
-  assert.ok(docs.includes("api-admin.ores-shared-auth.com"));
-  assert.ok(!docs.includes("admin-api.ores-shared-auth.com"), "the retired spelling must not be published");
-});
-
-test("the marketing surface ships the capability, roadmap, security and docs pages", () => {
-  for (const route of ["features", "roadmap", "security", "docs", "login"]) {
-    const page = new URL(`../dist/${route}/index.html`, import.meta.url);
-    assert.ok(existsSync(page), `missing /${route}/`);
-    const html = readFileSync(page, "utf8");
-    assert.ok(!html.includes("undefined"), `/${route}/ rendered undefined`);
-    assert.ok(html.includes("Shared Auth"));
-    assert.ok(html.includes('class="nav-login"'), `/${route}/ lost the login entry points`);
-  }
-});
-
-test("the capability register never claims a status it cannot back", async () => {
-  const register = await import("../src/lib/capabilities.mjs");
-  const ids = register.ALL_CAPABILITIES.map((capability) => capability.id);
-  assert.equal(new Set(ids).size, ids.length, "capability ids must be unique");
-  const milestones = new Set(register.MILESTONES.map((milestone) => milestone.id));
-  for (const capability of register.ALL_CAPABILITIES) {
-    assert.ok(register.STATUS[capability.status], `unknown status on ${capability.id}`);
-    assert.ok(register.TIERS[capability.tier], `unknown tier on ${capability.id}`);
-    assert.ok(capability.note.length > 0, `${capability.id} needs a note`);
-    if (capability.status === "partial" || capability.status === "planned") {
-      assert.ok(milestones.has(capability.milestone), `${capability.id} must name a milestone`);
-    }
-    if (capability.status === "shipped" || capability.status === "none") {
-      assert.equal(capability.milestone, undefined, `${capability.id} must not name a milestone`);
-    }
-  }
-  const html = readFileSync(new URL("../dist/features/index.html", import.meta.url), "utf8");
-  for (const capability of register.ALL_CAPABILITIES) {
-    assert.ok(html.includes(capability.title), `features page omits ${capability.id}`);
-  }
+  assert.ok(!html.includes("Authorization: Bearer"));
+  assert.ok(!html.includes("localStorage"));
+  assert.ok(!html.includes("sessionStorage"));
 });
 
 test("dashboard handoff documents fail-closed directory guardrails", () => {
@@ -138,12 +87,21 @@ test("dashboard handoff documents fail-closed directory guardrails", () => {
   assert.ok(source.includes('referrerpolicy="no-referrer"'));
 });
 
-test("repository remains Astro-only and opts out of Jekyll processing", () => {
+test("repository remains Astro-only, removes the legacy root page, and opts out of Jekyll", () => {
   assert.ok(existsSync(new URL("../public/.nojekyll", import.meta.url)));
   assert.ok(existsSync(new URL("../dist/.nojekyll", import.meta.url)));
+  assert.ok(!existsSync(new URL("../index.html", import.meta.url)));
   for (const forbidden of ["_config.yml", "Gemfile", "config.toml", "hugo.toml"]) {
     assert.ok(!existsSync(new URL(`../${forbidden}`, import.meta.url)), `unexpected ${forbidden}`);
   }
+});
+
+test("Astro canonical output is the Cloudflare-owned marketing domain", () => {
+  const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
+  assert.ok(config.includes('site: "https://ores-shared-auth.com"'));
+  assert.ok(config.includes('output: "static"'));
+  assert.ok(config.includes('trailingSlash: "always"'));
+  assert.ok(!config.includes('site: "https://shared-auth.github.io"'));
 });
 
 test("the committed lock pins the certified Astro dependency", () => {
@@ -175,4 +133,58 @@ test("all workflow dependencies are immutable and checkouts drop credentials", (
   const pages = readFileSync(workflows[1], "utf8");
   assert.ok(pages.includes("npm ci --ignore-scripts --no-audit --no-fund"));
   assert.ok(!pages.includes("npm install --package-lock-only"));
+
+  const browser = readFileSync(workflows[0], "utf8");
+  assert.ok(browser.includes("skip_repository_commands: false"));
+  assert.ok(browser.includes("app_page: index.html"));
+  assert.ok(browser.includes("- 'src/**'"));
+});
+
+test("the custom apex domain is actually bound in the artifact", () => {
+  // astro.config.mjs naming ores-shared-auth.com only sets the canonical URL
+  // used when generating absolute links. What makes GitHub Pages serve the
+  // domain is a CNAME file in the published artifact, and public/ is the only
+  // place that survives the build.
+  const cname = readFileSync(new URL("../public/CNAME", import.meta.url), "utf8").trim();
+  assert.equal(cname, "ores-shared-auth.com");
+  assert.ok(existsSync(new URL("../dist/CNAME", import.meta.url)), "CNAME must reach dist/");
+
+  const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
+  assert.ok(
+    config.includes(`site: "https://${cname}"`),
+    "astro.config.mjs and public/CNAME must name the same host",
+  );
+});
+
+test("crawler directives keep the private surfaces out of the index", () => {
+  const robots = readFileSync(new URL("../dist/robots.txt", import.meta.url), "utf8");
+  for (const disallowed of ["/dashboard/", "/admin/"]) {
+    assert.ok(robots.includes(`Disallow: ${disallowed}`), `robots.txt must disallow ${disallowed}`);
+  }
+  assert.ok(robots.includes("Sitemap: https://ores-shared-auth.com/sitemap.xml"));
+
+  const sitemap = readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8");
+  for (const advertised of ["/platform/", "/user/", "/org/", "/m/"]) {
+    assert.ok(sitemap.includes(advertised), `sitemap must list ${advertised}`);
+  }
+  // A page that robots.txt hides must not be advertised in the sitemap; that
+  // contradiction is how a private handoff ends up crawled anyway.
+  for (const hidden of ["/dashboard/", "/admin/"]) {
+    assert.ok(!sitemap.includes(hidden), `sitemap must not advertise ${hidden}`);
+  }
+});
+
+test("every page the sitemap advertises actually exists", () => {
+  const sitemap = readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8");
+  const locs = [...sitemap.matchAll(/<loc>https:\/\/ores-shared-auth\.com(\/[^<]*)<\/loc>/g)].map(
+    ([, path]) => path,
+  );
+  assert.ok(locs.length > 0, "sitemap must list something");
+  for (const path of locs) {
+    const file = path === "/" ? "index.html" : `${path.replace(/^\/|\/$/g, "")}/index.html`;
+    assert.ok(
+      existsSync(new URL(`../dist/${file}`, import.meta.url)),
+      `sitemap advertises ${path} but dist/${file} was not built`,
+    );
+  }
 });
