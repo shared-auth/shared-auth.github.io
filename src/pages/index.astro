@@ -1,33 +1,88 @@
 ---
+import AnnouncementBar from "../components/AnnouncementBar.astro";
 import ClientShowcase from "../components/ClientShowcase.astro";
 import DashboardCta from "../components/DashboardCta.astro";
-import AnnouncementBar from "../components/AnnouncementBar.astro";
+
 const features = [
   [
-    "Protected introspection",
-    "Attach an independent service credential only to the introspection endpoint and fail locally when it is missing.",
-  ],
-  [
-    "Token exchange",
-    "Turn provider identity into one verified shared-auth contract instead of provider-specific assumptions.",
+    "Authentication UX",
+    "Password, magic-link, OTP, passkey, social, and enterprise sign-in flows with explicit recovery and step-up ceremonies.",
   ],
   [
     "MFA and 3FA",
-    "Compose email, SMS, TOTP import, and factor enrollment through typed ceremonies.",
+    "TOTP, email, SMS, passkeys, recovery codes, factor enrollment, challenge policy, and assurance-level evidence.",
   ],
   [
-    "Passkey ceremonies",
-    "Relay opaque WebAuthn credential JSON and never accept raw fingerprint or face templates.",
+    "Organizations and tenancy",
+    "Organization switchers, invitations, verified domains, memberships, roles, and explicit application-owned authorization boundaries.",
   ],
   [
-    "Credential-safe transport",
-    "Redirect refusal, bounded bodies, path validation, and redacted errors span the client matrix.",
+    "Enterprise federation",
+    "OIDC and SAML SSO, identity brokering, just-in-time enrollment, SCIM provisioning, and directory synchronization.",
   ],
   [
-    "Generated identity types",
-    "Keep interfaces, guard logic, and transports separate so clients cannot redefine identity semantics.",
+    "Sessions and devices",
+    "Session inventory, device context, bounded risk signals, revocation, concurrent-session policy, and reauthentication controls.",
+  ],
+  [
+    "Lifecycle management",
+    "Identity linking, profile changes, recovery, suspension, deprovisioning, retention policy, and auditable account deletion.",
+  ],
+  [
+    "Developer platform",
+    "Typed SDKs, machine identities, webhooks, API credentials, test tenants, event delivery, and generated identity contracts.",
+  ],
+  [
+    "Governance and operations",
+    "Policy versions, audit trails, operator separation, tenant support tooling, health evidence, and privacy-safe telemetry.",
+  ],
+  [
+    "Portable deployment",
+    "Cloudflare exact-host routing over independent Cloud Run and Kubernetes origins with readiness-gated, safe failover.",
   ],
 ];
+
+const parityReferences = [
+  "Clerk",
+  "Supabase Auth",
+  "Neon Auth",
+  "Okta / Auth0",
+  "WorkOS",
+  "Stytch",
+  "Frontegg",
+  "Microsoft Entra ID",
+  "Ping Identity",
+  "OneLogin",
+  "Keycloak",
+  "Ory",
+  "Logto",
+  "SuperTokens",
+];
+
+const productPlanes = [
+  {
+    label: "USER CONSOLE",
+    title: "Personal identity and security",
+    body: "Profile, linked identities, passkeys, MFA, recovery, sessions, devices, consent, notifications, and account lifecycle.",
+    href: "https://user.ores-shared-auth.com",
+    action: "User login →",
+  },
+  {
+    label: "ORGANIZATION CONSOLE",
+    title: "Membership and enterprise access",
+    body: "Organization switching, invitations, members, roles, verified domains, SSO, SCIM, directories, audit events, and policy.",
+    href: "https://org.ores-shared-auth.com",
+    action: "Organization login →",
+  },
+  {
+    label: "ADMIN CONSOLE",
+    title: "Tenant and platform operations",
+    body: "Tenant lifecycle, provider configuration, risk and session controls, incidents, system health, support access, and evidence exports.",
+    href: "https://admin.ores-shared-auth.com",
+    action: "Open administration →",
+  },
+];
+
 const samples = [
   {
     id: "rust",
@@ -97,99 +152,146 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
 
 <!doctype html>
 <html lang="en">
-  <head
-    ><meta charset="utf-8" /><meta
-      name="viewport"
-      content="width=device-width,initial-scale=1"
-    /><meta
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
       name="description"
-      content="A shared identity plane for token exchange, protected introspection, MFA, passkeys, and explicit assurance."
-    /><meta name="theme-color" content="#0b1020" /><title>
-      Shared Auth — identity with explicit assurance
-    </title></head
-  ><body>
+      content="Shared Auth is a portable identity plane for user and organization login, MFA, passkeys, enterprise SSO, directories, lifecycle management, and explicit assurance."
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta name="theme-color" content="#0b1020" />
+    <link rel="canonical" href="https://ores-shared-auth.com/" />
+    <meta property="og:title" content="Shared Auth — identity with explicit assurance" />
+    <meta
+      property="og:description"
+      content="One portable identity boundary for people, organizations, operators, and services."
+    />
+    <meta property="og:url" content="https://ores-shared-auth.com/" />
+    <meta property="og:type" content="website" />
+    <title>Shared Auth — identity with explicit assurance</title>
+  </head>
+  <body>
     <AnnouncementBar
-      storageKey="site-announcement:shared-auth:v1"
-      message="Happy 2026, y’all!"
-      href="https://github.com/shared-auth"
-      linkLabel="See what we’re building"
+      storageKey="site-announcement:shared-auth:v2"
+      message="Shared Auth is building an open, portable IAM and CIAM control plane."
+      href="#roadmap"
+      linkLabel="Review the parity roadmap"
       tone="ember"
     />
-    <header>
-      <a class="brand" href="/"><b>A</b> Shared Auth</a><nav>
-        <a href="#platform">Platform</a><a href="#clients">Clients</a><a
-          href="https://github.com/shared-auth">GitHub ↗</a
-        ><a class="nav-dashboard" href="/dashboard/">Dashboard</a>
+
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Shared Auth home"><b>A</b> Shared Auth</a>
+      <nav aria-label="Primary navigation">
+        <a class="nav-secondary" href="#platform">Platform</a>
+        <a class="nav-secondary" href="#roadmap">Roadmap</a>
+        <a class="nav-secondary" href="#clients">Clients</a>
+        <a class="nav-secondary" href="https://m.ores-shared-auth.com">Mobile</a>
+        <a class="nav-secondary" href="https://github.com/shared-auth" rel="noreferrer noopener">GitHub ↗</a>
+        <a class="nav-login nav-user" href="https://user.ores-shared-auth.com">User login</a>
+        <a class="nav-login nav-org" href="https://org.ores-shared-auth.com">Org login</a>
       </nav>
     </header>
+
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow">Identity plane · Assurance-aware</p><h1>
-            One identity boundary. <em>No implicit trust.</em>
-          </h1><p class="lede">
-            Shared Auth centralizes token exchange, introspection, factor
-            enrollment, OTP challenges, and WebAuthn ceremonies while keeping
-            service credentials and end-user tokens in separate lanes.
-          </p><div class="actions">
-            <DashboardCta /><a href="https://github.com/shared-auth"
-              >Explore the identity plane ↗</a
-            ><a href="#clients">See client code</a>
-          </div><ul>
-            <li>Protected introspection</li><li>
-              Passkeys without biometric custody
-            </li><li>Polyglot SDK matrix</li>
-          </ul>
-        </div><div class="visual">
-          <span class="mesh"></span><div class="lane lane-user">
-            <small>USER LANE</small><b>provider token</b><i
-              >exchange → identity</i>
-          </div><div class="lane lane-service">
-            <small>SERVICE LANE</small><b>introspection secret</b><i
-              >introspect only</i>
-          </div><div class="core">
-            <small>ASSURANCE</small><strong>explicit ACR</strong><span
-              >Authentication is not authorization.</span>
-          </div><div class="chip c1">EXCHANGE<b>ES256</b></div><div
-            class="chip c2"
-          >
-            FACTORS<b>MFA</b>
-          </div><div class="chip c3">PASSKEYS<b>WebAuthn</b></div><div
-            class="chip c4"
-          >
-            GATEWAY<b>verified</b>
+          <p class="eyebrow">Portable IAM · CIAM · Explicit assurance</p>
+          <h1>One identity boundary. <em>No implicit trust.</em></h1>
+          <p class="lede">
+            Shared Auth centralizes sign-in, token exchange, protected
+            introspection, MFA, passkeys, enterprise federation, directories,
+            and lifecycle management while keeping product authorization in the
+            applications that own it.
+          </p>
+          <div class="actions">
+            <a class="primary-action" href="https://user.ores-shared-auth.com">User login</a>
+            <a class="secondary-action" href="https://org.ores-shared-auth.com">Organization login</a>
+            <DashboardCta />
           </div>
+          <ul>
+            <li>Exact-host isolation</li>
+            <li>Passkeys without biometric custody</li>
+            <li>Cloud Run + Kubernetes portability</li>
+          </ul>
+        </div>
+        <div class="visual" aria-label="Shared Auth assurance architecture">
+          <span class="mesh" aria-hidden="true"></span>
+          <div class="lane lane-user">
+            <small>USER LANE</small><b>provider token</b><i>exchange → identity</i>
+          </div>
+          <div class="lane lane-service">
+            <small>SERVICE LANE</small><b>introspection secret</b><i>introspect only</i>
+          </div>
+          <div class="core">
+            <small>ASSURANCE</small><strong>explicit ACR</strong><span>Authentication is not authorization.</span>
+          </div>
+          <div class="chip c1">FEDERATION<b>OIDC / SAML</b></div>
+          <div class="chip c2">FACTORS<b>MFA / 3FA</b></div>
+          <div class="chip c3">PASSKEYS<b>WebAuthn</b></div>
+          <div class="chip c4">DIRECTORIES<b>SCIM</b></div>
         </div>
       </section>
-      <section class="metrics">
-        <div><b>10+</b><span>client runtime slices</span></div><div>
-          <b>2</b><span>credential lanes</span>
-        </div><div><b>0</b><span>raw biometric templates</span></div><div>
-          <b>1</b><span>assurance contract</span>
-        </div>
+
+      <section class="metrics" aria-label="Platform principles">
+        <div><b>4</b><span>isolated public service planes</span></div>
+        <div><b>2</b><span>independent origin platforms</span></div>
+        <div><b>0</b><span>raw biometric templates</span></div>
+        <div><b>1</b><span>versioned identity contract</span></div>
       </section>
+
       <section id="platform" class="platform">
-        <p class="eyebrow">Identity infrastructure</p><h2>
-          Make every trust transition visible.
-        </h2><p class="intro">
-          Exchange, verification, protected introspection, factor ceremonies,
-          and application guard logic remain separate. Services can demand an
-          assurance level without conflating identity with tenant or resource
-          authorization.
-        </p><div class="features">
+        <p class="eyebrow">Holistic identity infrastructure</p>
+        <h2>Make every trust transition visible.</h2>
+        <p class="intro">
+          The target is full IAM and CIAM coverage without collapsing identity,
+          tenant membership, operator privilege, and application authorization
+          into one opaque session.
+        </p>
+        <div class="features">
           {
             features.map(([title, body], index) => (
               <article>
-                <>
-                  <small>{String(index + 1).padStart(2, "0")}</small>
-                  <h3>{title}</h3>
-                  <p>{body}</p>
-                </>
+                <small>{String(index + 1).padStart(2, "0")}</small>
+                <h3>{title}</h3>
+                <p>{body}</p>
               </article>
             ))
           }
         </div>
       </section>
+
+      <section id="roadmap" class="roadmap">
+        <div class="roadmap-heading">
+          <div>
+            <p class="eyebrow">Product parity program</p>
+            <h2>One capability model. Three deliberately separate consoles.</h2>
+          </div>
+          <p>
+            Clerk, Supabase Auth, Neon Auth, Okta/Auth0, WorkOS, Stytch,
+            Frontegg, Entra ID, Ping, OneLogin, Keycloak, Ory, Logto, and
+            SuperTokens are reference points—not compatibility claims. Features
+            graduate only with typed backend contracts, authorization checks,
+            audit evidence, and failure-state UX.
+          </p>
+        </div>
+        <div class="plane-grid">
+          {
+            productPlanes.map((plane) => (
+              <a class="plane" href={plane.href}>
+                <small>{plane.label}</small>
+                <h3>{plane.title}</h3>
+                <p>{plane.body}</p>
+                <b>{plane.action}</b>
+              </a>
+            ))
+          }
+        </div>
+        <div class="reference-strip" aria-label="Parity reference products">
+          {parityReferences.map((name) => <span>{name}</span>)}
+        </div>
+      </section>
+
       <div id="clients">
         <ClientShowcase
           title="Enforce assurance from native, web, mobile, BEAM, or JVM code."
@@ -198,36 +300,45 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
           samples={samples}
         />
       </div>
+
       <section class="flow">
         <div>
-          <p class="eyebrow">Separate lanes</p><h2>
-            User identity and service authority never blur together.
-          </h2>
-        </div><div class="steps">
-          <span>provider token</span><b>→</b><span>exchange</span><b>→</b><span
-            >shared identity</span
-          ><b>→</b><span>introspection</span><b>→</b><span
-            >app authorization</span>
-        </div><p>
+          <p class="eyebrow">Separate lanes</p>
+          <h2>User identity and service authority never blur together.</h2>
+        </div>
+        <div class="steps">
+          <span>provider identity</span><b>→</b><span>exchange</span><b>→</b><span>shared identity</span><b>→</b><span>assurance</span><b>→</b><span>app authorization</span>
+        </div>
+        <p>
           Shared Auth proves identity and assurance. Applications still own
-          tenant, role, and resource authorization.
+          tenant, role, entitlement, and resource authorization.
         </p>
       </section>
+
       <section class="closing">
-        <p class="eyebrow">Trust should be inspectable</p><h2>
-          Give every application one hardened identity plane.
-        </h2><p>
-          Explore the interfaces, guard library, client matrix, gateway, and
-          3FA-compatible factor flows.
-        </p><a href="https://github.com/shared-auth"
-          >Open the organization ↗</a>
+        <p class="eyebrow">Choose the intended boundary</p>
+        <h2>Sign in as a person or enter an organization explicitly.</h2>
+        <p>
+          The public header and mobile surface lead to distinct user and
+          organization applications; neither path silently grants the other
+          context.
+        </p>
+        <div class="closing-actions">
+          <a href="https://user.ores-shared-auth.com">User login</a>
+          <a href="https://org.ores-shared-auth.com">Organization login</a>
+          <a href="https://m.ores-shared-auth.com">Mobile entry</a>
+        </div>
       </section>
-    </main><footer>
-      <span>© 2026 Shared Auth</span><a
-        href="https://github.com/shared-auth/shared-auth-clients"
-        >Client packages</a>
-    </footer></body>
+    </main>
+
+    <footer>
+      <span>© 2026 Shared Auth</span>
+      <a href="https://github.com/shared-auth/shared-auth-clients">Client packages</a>
+      <a href="https://auth.ores-shared-auth.com/edge/healthz">Edge health</a>
+    </footer>
+  </body>
 </html>
+
 <style is:global>
   :root {
     --accent: #6d5dfc;
@@ -235,43 +346,61 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     --ink: #0b1020;
     --muted: #5f6b7c;
     --paper: #f6f7ff;
+    --line: #0f172a18;
   }
+
   * {
     box-sizing: border-box;
   }
+
   html {
     scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
   }
+
   body {
     margin: 0;
     overflow-x: hidden;
     background: linear-gradient(180deg, #eef2ff, var(--paper) 34rem);
     color: var(--ink);
-    font:
-      16px/1.6 Inter,
-      ui-sans-serif,
-      system-ui,
-      sans-serif;
+    font: 16px/1.6 Inter, ui-sans-serif, system-ui, sans-serif;
   }
+
   a {
     color: inherit;
   }
-  header,
+
+  .site-header,
   main,
   footer {
     width: min(1180px, calc(100% - 2rem));
-    margin: auto;
+    margin-inline: auto;
   }
-  header {
+
+  .site-header {
+    position: sticky;
+    top: 0.65rem;
+    z-index: 20;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.1rem 0;
+    gap: 1rem;
+    min-height: 4.6rem;
+    margin-top: 0.65rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid #ffffff9c;
+    border-radius: 1rem;
+    background: #f7f8ffe8;
+    box-shadow: 0 12px 40px #0f172a14;
+    backdrop-filter: blur(18px);
   }
+
   .brand {
+    flex: 0 0 auto;
     font-weight: 900;
     text-decoration: none;
   }
+
   .brand b {
     display: inline-grid;
     width: 2.2rem;
@@ -282,22 +411,46 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     background: var(--ink);
     color: white;
   }
+
   nav {
     display: flex;
-    gap: 1.3rem;
+    justify-content: flex-end;
     align-items: center;
-    font-size: 0.88rem;
-    font-weight: 750;
+    gap: 0.85rem;
+    font-size: 0.84rem;
+    font-weight: 760;
   }
+
   nav a {
+    white-space: nowrap;
     text-decoration: none;
   }
-  .nav-dashboard {
-    padding: 0.45rem 0.75rem;
-    border-radius: 0.65rem;
+
+  .nav-secondary {
+    color: var(--muted);
+  }
+
+  .nav-secondary:hover,
+  .nav-secondary:focus-visible {
+    color: var(--ink);
+  }
+
+  .nav-login {
+    padding: 0.55rem 0.78rem;
+    border: 1px solid var(--line);
+    border-radius: 0.72rem;
+  }
+
+  .nav-user {
+    background: white;
+  }
+
+  .nav-org {
+    border-color: var(--ink);
     background: var(--ink);
     color: white;
   }
+
   .hero {
     display: grid;
     grid-template-columns: 1.05fr 0.95fr;
@@ -306,15 +459,15 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     min-height: 720px;
     padding: 5rem 0;
   }
+
   .eyebrow {
     margin: 0;
     color: var(--accent);
-    font:
-      800 0.72rem/1 ui-monospace,
-      monospace;
+    font: 800 0.72rem/1 ui-monospace, monospace;
     letter-spacing: 0.18em;
     text-transform: uppercase;
   }
+
   h1 {
     max-width: 12ch;
     margin: 0.8rem 0 1.3rem;
@@ -322,33 +475,55 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     line-height: 0.86;
     letter-spacing: -0.075em;
   }
+
   h1 em {
     background: linear-gradient(120deg, var(--accent), var(--hot));
     background-clip: text;
     color: transparent;
     font-style: normal;
   }
+
   .lede,
   .intro {
-    max-width: 46rem;
+    max-width: 48rem;
     color: var(--muted);
     font-size: 1.12rem;
   }
-  .actions {
+
+  .actions,
+  .closing-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
-    flex-wrap: wrap;
+  }
+
+  .actions {
     margin: 2rem 0;
   }
-  .actions a:not(.dashboard-cta),
-  .closing a {
-    padding: 0.75rem 1.05rem;
-    border: 1px solid #0f172a18;
+
+  .actions > a,
+  .closing-actions a {
+    min-height: 2.8rem;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.72rem 1rem;
+    border: 1px solid var(--line);
     border-radius: 0.8rem;
     font-weight: 800;
     text-decoration: none;
   }
+
+  .primary-action {
+    border-color: var(--ink) !important;
+    background: var(--ink);
+    color: white;
+  }
+
+  .secondary-action {
+    background: white;
+  }
+
   .hero ul {
     display: flex;
     flex-wrap: wrap;
@@ -359,29 +534,29 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     font-size: 0.82rem;
     list-style: none;
   }
-  .hero li:before {
+
+  .hero li::before {
     content: "◆";
     margin-right: 0.4rem;
     color: var(--accent);
   }
+
   .visual {
     position: relative;
     min-height: 31rem;
     overflow: hidden;
     border-radius: 2rem;
-    background:
-      radial-gradient(circle at 50% 48%, #6d5dfc45, transparent 38%),
-      linear-gradient(145deg, #070c19, #141e38);
+    background: radial-gradient(circle at 50% 48%, #6d5dfc45, transparent 38%), linear-gradient(145deg, #070c19, #141e38);
     box-shadow: 0 35px 90px #0f172a42;
   }
+
   .mesh {
     position: absolute;
     inset: 0;
-    background-image:
-      linear-gradient(#ffffff0d 1px, transparent 1px),
-      linear-gradient(90deg, #ffffff0d 1px, transparent 1px);
+    background-image: linear-gradient(#ffffff0d 1px, transparent 1px), linear-gradient(90deg, #ffffff0d 1px, transparent 1px);
     background-size: 2.3rem 2.3rem;
   }
+
   .lane,
   .core,
   .chip {
@@ -391,33 +566,37 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     color: white;
     backdrop-filter: blur(14px);
   }
+
   .lane {
     display: grid;
     width: 11rem;
     padding: 0.85rem;
     border-radius: 0.9rem;
   }
+
   .lane small,
   .core small,
   .chip {
-    font:
-      700 0.62rem/1.4 ui-monospace,
-      monospace;
+    font: 700 0.62rem/1.4 ui-monospace, monospace;
     letter-spacing: 0.09em;
   }
+
   .lane i {
     color: #94a3b8;
     font-size: 0.72rem;
     font-style: normal;
   }
+
   .lane-user {
     top: 8%;
     left: 7%;
   }
+
   .lane-service {
     top: 8%;
     right: 7%;
   }
+
   .core {
     top: 50%;
     left: 50%;
@@ -427,14 +606,17 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     border-radius: 1.2rem;
     transform: translate(-50%, -50%);
   }
+
   .core strong {
     margin: 0.4rem 0;
     font-size: 1.35rem;
   }
+
   .core span {
     color: #94a3b8;
     font-size: 0.8rem;
   }
+
   .chip {
     display: grid;
     min-width: 8rem;
@@ -442,86 +624,154 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     border-radius: 0.9rem;
     color: #94a3b8;
   }
+
   .chip b {
     color: white;
   }
-  .c1 {
-    bottom: 11%;
-    left: 6%;
-  }
-  .c2 {
-    bottom: 13%;
-    left: 31%;
-  }
-  .c3 {
-    bottom: 13%;
-    right: 28%;
-  }
-  .c4 {
-    right: 6%;
-    bottom: 9%;
-  }
+
+  .c1 { bottom: 11%; left: 6%; }
+  .c2 { bottom: 13%; left: 31%; }
+  .c3 { bottom: 13%; right: 28%; }
+  .c4 { right: 6%; bottom: 9%; }
+
   .metrics {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     overflow: hidden;
-    border: 1px solid #0f172a16;
+    border: 1px solid var(--line);
     border-radius: 1.2rem;
     background: #ffffffb8;
     box-shadow: 0 20px 55px #0f172a10;
   }
+
   .metrics div {
     display: grid;
     padding: 1.2rem;
   }
+
   .metrics div + div {
-    border-left: 1px solid #0f172a16;
+    border-left: 1px solid var(--line);
   }
+
   .metrics b {
     font-size: 1.35rem;
   }
+
   .metrics span {
     color: var(--muted);
     font-size: 0.78rem;
   }
+
   .platform {
     padding: 8rem 0;
   }
+
   .platform h2,
+  .roadmap h2,
   .flow h2,
   .closing h2 {
-    max-width: 15ch;
+    max-width: 17ch;
     margin: 0.6rem 0 1rem;
     font-size: clamp(2.6rem, 6vw, 5rem);
     line-height: 0.94;
     letter-spacing: -0.06em;
   }
+
   .features {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1rem;
     margin-top: 3rem;
   }
-  .features article {
-    min-height: 15rem;
-    padding: 1.3rem;
-    border: 1px solid #0f172a14;
+
+  .features article,
+  .plane {
+    border: 1px solid var(--line);
     border-radius: 1.2rem;
     background: #ffffffc4;
   }
-  .features small {
-    color: var(--accent);
-    font:
-      800 0.7rem/1 ui-monospace,
-      monospace;
+
+  .features article {
+    min-height: 15rem;
+    padding: 1.3rem;
   }
+
+  .features small,
+  .plane small {
+    color: var(--accent);
+    font: 800 0.7rem/1 ui-monospace, monospace;
+  }
+
   .features h3 {
     margin: 2.4rem 0 0.6rem;
     font-size: 1.25rem;
   }
-  .features p {
+
+  .features p,
+  .plane p,
+  .roadmap-heading > p {
     color: var(--muted);
   }
+
+  .roadmap {
+    padding: clamp(2rem, 6vw, 5rem);
+    border: 1px solid var(--line);
+    border-radius: 2rem;
+    background: #edf2ff;
+  }
+
+  .roadmap-heading {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 2rem;
+    align-items: end;
+  }
+
+  .roadmap-heading > p {
+    margin: 0 0 1rem;
+  }
+
+  .plane-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-top: 2.5rem;
+  }
+
+  .plane {
+    min-height: 18rem;
+    display: flex;
+    flex-direction: column;
+    padding: 1.35rem;
+    text-decoration: none;
+  }
+
+  .plane h3 {
+    margin: 1.4rem 0 0.65rem;
+    font-size: 1.45rem;
+  }
+
+  .plane b {
+    margin-top: auto;
+    padding-top: 1.5rem;
+  }
+
+  .reference-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1.5rem;
+  }
+
+  .reference-strip span {
+    padding: 0.45rem 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #ffffff96;
+    color: var(--muted);
+    font-size: 0.76rem;
+  }
+
   .flow {
     display: grid;
     grid-template-columns: 0.8fr 1.2fr;
@@ -533,32 +783,36 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     background: #0b1020;
     color: white;
   }
+
   .flow .eyebrow {
     color: #a5b4fc;
   }
+
   .flow > p {
     grid-column: 2;
     margin: 0;
     color: #94a3b8;
   }
+
   .steps {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.55rem;
     align-items: center;
-    flex-wrap: wrap;
   }
+
   .steps span {
     padding: 0.65rem 0.8rem;
     border: 1px solid #ffffff20;
     border-radius: 0.65rem;
     background: #ffffff0b;
-    font:
-      650 0.75rem/1 ui-monospace,
-      monospace;
+    font: 650 0.75rem/1 ui-monospace, monospace;
   }
+
   .steps b {
     color: #818cf8;
   }
+
   .closing {
     margin-bottom: 2rem;
     padding: clamp(2rem, 7vw, 6rem);
@@ -566,15 +820,20 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     background: linear-gradient(125deg, var(--accent), var(--hot));
     color: white;
   }
+
   .closing .eyebrow {
     color: #ffffffc4;
   }
-  .closing a {
-    display: inline-block;
+
+  .closing-actions {
     margin-top: 1rem;
+  }
+
+  .closing-actions a {
     background: white;
     color: var(--ink);
   }
+
   footer {
     display: flex;
     justify-content: flex-end;
@@ -583,45 +842,91 @@ guard identity.hasACR("urn:oresoftware:loa:2") else {
     color: var(--muted);
     font-size: 0.8rem;
   }
+
   footer span {
     margin-right: auto;
   }
+
   footer a {
     text-decoration: none;
   }
+
+  @media (max-width: 1050px) {
+    .nav-secondary {
+      display: none;
+    }
+  }
+
   @media (max-width: 900px) {
-    .hero {
-      grid-template-columns: 1fr;
-      min-height: auto;
-    }
-    .features {
-      grid-template-columns: 1fr 1fr;
-    }
+    .hero,
+    .roadmap-heading,
     .flow {
       grid-template-columns: 1fr;
     }
+
+    .features,
+    .plane-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
     .flow > p {
       grid-column: 1;
     }
   }
+
   @media (max-width: 650px) {
-    nav a:not(:last-child) {
-      display: none;
+    .site-header {
+      top: 0.35rem;
+      min-height: 4rem;
+      padding: 0.55rem;
     }
+
+    .brand {
+      font-size: 0;
+    }
+
+    .brand b {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    nav {
+      width: 100%;
+      gap: 0.45rem;
+    }
+
+    .nav-login {
+      flex: 1 1 0;
+      padding-inline: 0.55rem;
+      text-align: center;
+    }
+
+    .hero {
+      min-height: auto;
+      padding-top: 4rem;
+    }
+
     .visual {
       min-height: 27rem;
     }
-    .metrics {
-      grid-template-columns: 1fr 1fr;
-    }
-    .features {
+
+    .metrics,
+    .features,
+    .plane-grid {
       grid-template-columns: 1fr;
     }
+
+    .metrics div + div {
+      border-top: 1px solid var(--line);
+      border-left: 0;
+    }
+
     .c2,
     .c3 {
       display: none;
     }
   }
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
