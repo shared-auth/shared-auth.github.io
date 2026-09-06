@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 
-const expectedInterfaces = 'b0e687c88b652d25964c041e2fdd0222f512fddd';
-const expectedLoader = '3b92396e34ffd0ba6411261957e47dd62cf3b4a4';
+const expectedInterfaces = '231510f5d01046af657be42a5d4215be12622042';
+const expectedLoader = 'deae23537d27aed94bdc2510649f99393379a617';
 const expectedDigest = '93a44bbb96c751218e4c00d479e4c14358122a389acca16205b1e4d0dc5f9476';
 
 async function source(path) {
