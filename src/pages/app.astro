@@ -17,6 +17,13 @@ const surfaces = [
     action: "Open organization entry →",
   },
   {
+    label: "MOBILE",
+    title: "Mobile entry",
+    body: "Use a compact, touch-friendly selector that hands off to the same exact user and organization authorities.",
+    href: "https://m.ores-shared-auth.com",
+    action: "Open mobile entry →",
+  },
+  {
     label: "OPERATIONS",
     title: "Administration",
     body: "Use the isolated operator surface. A verified identity alone never grants administrative authority.",
@@ -50,7 +57,7 @@ const surfaces = [
 <PublicLaunchShell
   eyebrow="Application selector"
   title="Choose the boundary you intend to enter."
-  summary="Shared Auth keeps personal, organization, operator, and machine-facing surfaces distinct. Select a public entry point without treating authentication as product authorization."
+  summary="Shared Auth keeps personal, organization, operator, mobile, and machine-facing surfaces distinct. Select a public entry point without treating authentication as product authorization."
   host="app.ores-shared-auth.com"
 >
   <section class="surface">
