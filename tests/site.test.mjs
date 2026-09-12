@@ -139,3 +139,59 @@ test("all workflow dependencies are immutable and checkouts drop credentials", (
   assert.ok(browser.includes("app_page: index.html"));
   assert.ok(browser.includes("- 'src/**'"));
 });
+
+test("this artifact must NOT claim the apex domain with a CNAME file", () => {
+  // Counter-intuitive, and the reason is worth keeping written down.
+  //
+  // ores-shared-auth.com is served by the shared-auth-gateway Worker, whose
+  // PUBLIC_SITE_ORIGIN is https://shared-auth.github.io - it fetches this
+  // artifact and proxies it. A CNAME file here would make GitHub Pages start
+  // 301-redirecting shared-auth.github.io to ores-shared-auth.com. The Worker
+  // fetches with redirect: "manual" and passes the response through, so every
+  // marketing request would become a redirect back to itself.
+  //
+  // astro.config.mjs still names ores-shared-auth.com, because that is the
+  // canonical origin for generated absolute links. Naming it there and binding
+  // it here are different things, and only the first one is wanted.
+  assert.ok(
+    !existsSync(new URL("../public/CNAME", import.meta.url)),
+    "a CNAME file would loop the gateway's static origin back through itself",
+  );
+  assert.ok(!existsSync(new URL("../dist/CNAME", import.meta.url)));
+
+  const config = readFileSync(new URL("../astro.config.mjs", import.meta.url), "utf8");
+  assert.ok(config.includes('site: "https://ores-shared-auth.com"'));
+});
+
+test("crawler directives keep the private surfaces out of the index", () => {
+  const robots = readFileSync(new URL("../dist/robots.txt", import.meta.url), "utf8");
+  for (const disallowed of ["/dashboard/", "/admin/"]) {
+    assert.ok(robots.includes(`Disallow: ${disallowed}`), `robots.txt must disallow ${disallowed}`);
+  }
+  assert.ok(robots.includes("Sitemap: https://ores-shared-auth.com/sitemap.xml"));
+
+  const sitemap = readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8");
+  for (const advertised of ["/platform/", "/user/", "/org/", "/m/"]) {
+    assert.ok(sitemap.includes(advertised), `sitemap must list ${advertised}`);
+  }
+  // A page that robots.txt hides must not be advertised in the sitemap; that
+  // contradiction is how a private handoff ends up crawled anyway.
+  for (const hidden of ["/dashboard/", "/admin/"]) {
+    assert.ok(!sitemap.includes(hidden), `sitemap must not advertise ${hidden}`);
+  }
+});
+
+test("every page the sitemap advertises actually exists", () => {
+  const sitemap = readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8");
+  const locs = [...sitemap.matchAll(/<loc>https:\/\/ores-shared-auth\.com(\/[^<]*)<\/loc>/g)].map(
+    ([, path]) => path,
+  );
+  assert.ok(locs.length > 0, "sitemap must list something");
+  for (const path of locs) {
+    const file = path === "/" ? "index.html" : `${path.replace(/^\/|\/$/g, "")}/index.html`;
+    assert.ok(
+      existsSync(new URL(`../dist/${file}`, import.meta.url)),
+      `sitemap advertises ${path} but dist/${file} was not built`,
+    );
+  }
+});
