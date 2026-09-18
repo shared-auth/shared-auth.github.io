@@ -171,13 +171,18 @@ test("crawler directives keep the private surfaces out of the index", () => {
   assert.ok(robots.includes("Sitemap: https://ores-shared-auth.com/sitemap.xml"));
 
   const sitemap = readFileSync(new URL("../dist/sitemap.xml", import.meta.url), "utf8");
+  const advertisedPaths = new Set(
+    [...sitemap.matchAll(/<loc>https:\/\/ores-shared-auth\.com(\/[^<]*)<\/loc>/g)].map(
+      ([, path]) => path,
+    ),
+  );
   for (const advertised of ["/platform/", "/user/", "/org/", "/m/"]) {
-    assert.ok(sitemap.includes(advertised), `sitemap must list ${advertised}`);
+    assert.ok(advertisedPaths.has(advertised), `sitemap must list ${advertised}`);
   }
-  // A page that robots.txt hides must not be advertised in the sitemap; that
-  // contradiction is how a private handoff ends up crawled anyway.
+  // A page that robots.txt hides must not be advertised in a <loc>; comments
+  // may explain the policy without becoming false positives.
   for (const hidden of ["/dashboard/", "/admin/"]) {
-    assert.ok(!sitemap.includes(hidden), `sitemap must not advertise ${hidden}`);
+    assert.ok(!advertisedPaths.has(hidden), `sitemap must not advertise ${hidden}`);
   }
 });
 
